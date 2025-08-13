@@ -4,13 +4,12 @@ import { useAuthStore } from "@/stores/authStore"
 import { useMutation } from "@tanstack/react-query"
 
 export const useLogin = () => {
-    const {} = useAuthStore();
+    const { login } = useAuthStore();
 
     return useMutation<LoginResponse, ErrorResponse, LoginRequest>({
         mutationFn: loginApi,
         onSuccess: (data) => {
-        },
-        onError: (error) => {
+            login(data.accessToken); 
         }
     });
 }

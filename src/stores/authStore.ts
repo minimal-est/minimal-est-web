@@ -13,6 +13,7 @@ interface AuthState {
     setAuthInfo: (authInfo: AuthInfo) => void;
     isLoggedIn: boolean;
     setIsLoggedIn: (state: boolean) => void;
+    login: (token: string) => void;
     logout: () => void;
 }
 
@@ -68,6 +69,10 @@ export const useAuthStore = create<AuthState>((set) => {
 
         setIsLoggedIn: (state: boolean) => {
             set({ isLoggedIn: state })
+        },
+
+        login: (token: string) => {
+            updateAuthState(token);
         },
 
         logout: () => {

@@ -1,35 +1,43 @@
 import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useLogin } from "@/hooks/useLogin";
-import { useEffect } from "react";
-import type { LoginResponse } from "@/apis/types";
+import { useState } from "react";
+import type { ErrorResponse, LoginResponse } from "@/apis/types";
+import { CircleXIcon } from "lucide-react";
 
-const LoginForm = () => {
+interface LoginFormProps {
+    onSuccess: (data: LoginResponse) => void;
+}
+
+const LoginForm = ({ onSuccess }: LoginFormProps) => {
+
+    const [errorMessage, setErrorMessage] = useState("");
 
     const form = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
     });
 
-    const { mutate, data, isPending, isError, error } = useLogin();
+    const { mutate, isPending } = useLogin();
 
     const onSubmit = (formData: LoginFormData) => {
+        setErrorMessage("");
         mutate(formData, {
             onSuccess: (data: LoginResponse) => {
+                onSuccess(data);
+            },
+            onError: (err: ErrorResponse) => {
+                if (err.status === 401) {
+                    setErrorMessage("올바른 계정이 아닙니다!");
+                } else {
+                    setErrorMessage("로그인에 실패했습니다. 잠시 후 다시 시도해주세요.")
+                }
             }
         });
     }
-
-    useEffect(() => {
-        if (isError && error) {
-            if (error.status === 401) {
-                // 로그인 실패(인증 실패) 예외
-            }
-        }
-    }, [isError, error])
 
     return (
         <div className="w-full flex justify-center items-center">
@@ -61,13 +69,20 @@ const LoginForm = () => {
                             </FormItem> 
                         )}
                     />
-                    
-                    <Button 
-                        type="submit"
-                        disabled={isPending}
-                    >
-                        로그인
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button 
+                            type="submit"
+                            disabled={isPending}
+                        >
+                            로그인
+                        </Button>
+                        {errorMessage && (
+                            <div className="flex  text-red-500">
+                                <CircleXIcon />&nbsp;{errorMessage}
+                            </div>
+                        )}
+
+                    </div>
                 </form>
             </Form>
         </div>

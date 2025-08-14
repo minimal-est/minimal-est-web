@@ -54,23 +54,30 @@ axiosClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) 
     return config;
 })
 
+const toErrorResponse = (err: AxiosError): ErrorResponse => {
+
+    if (!err.response) {
+        const networkErrorResponse: ErrorResponse = {
+            status: 0,
+            title: "네트워크 오류",
+            detail: "네트워크 오류가 발생했습니다. 문제가 지속되면 관리자에게 문의해주세요.",
+            properties: null,
+        }
+
+        return networkErrorResponse;
+    }
+
+    return err.response.data as ErrorResponse;
+}
+
 axiosClient.interceptors.response.use(
     (response: AxiosResponse) => (response),
     async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
         
         // 네트워크 오류 및 해석할 수 없음
-        if (!error.response) {
-            const networkErrorResponse: ErrorResponse = {
-                status: 0,
-                title: "네트워크 오류",
-                detail: "네트워크 오류가 발생했습니다. 문제가 지속되면 관리자에게 문의해주세요.",
-                properties: null,
-            }
-            return Promise.reject(networkErrorResponse);
-        }
-
-        const errorResponse = error.response.data as ErrorResponse;
+        const errorResponse: ErrorResponse = toErrorResponse(error);
+        if (errorResponse.status === 0) return Promise.reject(errorResponse);
 
         // Access Token 만료 시
         if (errorResponse.status === 401 && !originalRequest._retry) {
@@ -107,7 +114,8 @@ axiosClient.interceptors.response.use(
                 const { logout } = useAuthStore.getState();
                 logout();
                 onRefreshedFailed(refreshError);
-                return Promise.reject(refreshError);
+
+                return Promise.reject(toErrorResponse(refreshError as AxiosError));
             } finally {
                 isRefreshing = false;
             }

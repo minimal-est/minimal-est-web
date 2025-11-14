@@ -1,7 +1,7 @@
-@import "../../node_modules/tailwindcss/dist/lib.d.mts";
-@import "../../node_modules/tw-animate-css";
+@import "tailwindcss";
+@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
-@config "../tailwindcss.config.js";
+@config "../../tailwindcss.config.js";
 
 @custom-variant dark (&:is(.dark *));
 

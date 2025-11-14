@@ -1,0 +1,1 @@
+export { type MenuButton, menuConfig } from "./menuConfig";

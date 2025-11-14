@@ -5,14 +5,14 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/app/App.css",
+    "css": "src/app/index.css",
     "baseColor": "stone",
     "cssVariables": true,
     "prefix": ""
   },
   "aliases": {
     "components": "@/shared/ui",
-    "utils": "@/shared/lib/utils",
+    "utils": "@/shared/lib/utils/utils",
     "ui": "@/shared/ui/base",
     "lib": "@/shared/lib",
     "hooks": "@/shared/lib/hooks"

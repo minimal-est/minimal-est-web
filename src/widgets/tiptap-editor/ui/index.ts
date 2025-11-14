@@ -1,0 +1,1 @@
+export { TiptapEditorWidget } from './TiptapEditorWidget';

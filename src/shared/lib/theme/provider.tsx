@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import type {Theme} from "@/shared/theme/ThemeTypes.ts";
 import { ThemeProviderContext } from "./context";
+import type {Theme} from "@/shared/lib/theme"
 
 interface ThemeProviderProps {
     children: React.ReactNode;
@@ -8,7 +8,7 @@ interface ThemeProviderProps {
     storageKey?: string
 }
 
-export const Provider = ({ children, defaultTheme, storageKey="ui-theme", ...props}: ThemeProviderProps) => {
+export const ThemeProvider = ({ children, defaultTheme, storageKey="ui-theme", ...props}: ThemeProviderProps) => {
     const [theme, setThemeState] = useState<Theme>(
         () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
     );

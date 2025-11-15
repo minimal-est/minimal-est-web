@@ -1,29 +1,37 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { mockArticleSummaries } from "@/entities/article/model";
+import { useSingleArticle } from "@/entities/article/lib";
 import { TiptapRenderer } from "@/shared/ui/TiptapRenderer";
-import { Editor } from "@/shared/ui/Editor";
-import type { JSONContent } from "@tiptap/core";
-import { Edit2, X, Save } from "lucide-react";
+import { Edit2 } from "lucide-react";
+import { useAuthStore } from "@/entities/user/lib";
 
 export const ArticleDetailPage = () => {
-    const { articleId } = useParams<{ penName: string; articleId: string }>();
+    const { penName, articleId } = useParams<{ penName: string; articleId: string }>();
     const navigate = useNavigate();
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [editTitle, setEditTitle] = useState("");
-    const [editContent, setEditContent] = useState<JSONContent[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
+    const { blogId, penName: myPenName } = useAuthStore();
 
-    const article = mockArticleSummaries.find((a) => a.articleId === articleId);
+    const { data: article, isLoading, error } = useSingleArticle(
+        { penName: penName || "", articleId: articleId || "" },
+        !!(penName && articleId)
+    );
 
-    if (!article) {
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mb-4" />
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !article) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-900">
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                     글을 찾을 수 없습니다
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    요청하신 글이 존재하지 않습니다.
+                    {error ? "글을 불러올 수 없습니다." : "요청하신 글이 존재하지 않습니다."}
                 </p>
                 <button
                     onClick={() => navigate("/")}
@@ -41,85 +49,13 @@ export const ArticleDetailPage = () => {
     };
 
     const handleEditMode = () => {
-        setEditTitle(article.title);
-        setEditContent(article.content);
-        setIsEditMode(true);
-    };
-
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            // TODO: API 호출로 수정 사항 저장
-            console.log("글 수정:", { title: editTitle, content: editContent });
-            alert("글이 수정되었습니다!");
-            setIsEditMode(false);
-        } catch (error) {
-            console.error("수정 실패:", error);
-            alert("글 수정에 실패했습니다.");
-        } finally {
-            setIsSaving(false);
+        if (!articleId) {
+            alert("글 ID를 찾을 수 없습니다.");
+            return;
         }
+        navigate(`/write/${articleId}`, { state: { authorPenName: article?.author.penName } });
     };
 
-    const handleCancel = () => {
-        setIsEditMode(false);
-        setEditTitle("");
-        setEditContent([]);
-    };
-
-    if (isEditMode) {
-        return (
-            <div className="w-full min-h-screen bg-white dark:bg-gray-900">
-                {/* Edit Header */}
-                <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95">
-                    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div className="flex items-center justify-between">
-                            <button
-                                onClick={handleCancel}
-                                className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                            >
-                                <X size={20} />
-                                <span className="font-medium">취소</span>
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                <Save size={18} />
-                                {isSaving ? "저장 중..." : "저장"}
-                            </button>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Edit Content */}
-                <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="space-y-8">
-                        {/* Title Input */}
-                        <div className="space-y-3">
-                            <input
-                                type="text"
-                                value={editTitle}
-                                onChange={(e) => setEditTitle(e.target.value)}
-                                placeholder="글의 제목을 입력하세요..."
-                                className="w-full text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none"
-                            />
-                            <div className="h-1 w-12 bg-violet-600 rounded-full" />
-                        </div>
-
-                        {/* Divider */}
-                        <div className="h-px bg-gradient-to-r from-gray-200 via-gray-300 to-transparent dark:from-gray-700 dark:via-gray-600 dark:to-transparent" />
-
-                        {/* Content Editor */}
-                        <div className="space-y-4">
-                            <Editor value={editContent} onChange={setEditContent} />
-                        </div>
-                    </div>
-                </main>
-            </div>
-        );
-    }
 
     return (
         <div className="w-full min-h-screen bg-white dark:bg-gray-900">
@@ -145,24 +81,33 @@ export const ArticleDetailPage = () => {
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white font-semibold text-lg">
                                 {article.author.penName.charAt(0).toUpperCase()}
                             </div>
-                            <div className="flex flex-col">
-                                <p className="font-semibold text-gray-900 dark:text-white">
-                                    {article.author.penName}
-                                </p>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                        {article.author.penName}
+                                    </p>
+                                    {article.status === 'DRAFT' && (
+                                        <span className="inline-block px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded-full">
+                                            발행되지 않음
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {formatDate(article.completedAt)}
+                                    {formatDate(article.publishedAt)}
                                 </p>
                             </div>
                         </div>
-                        {/* Edit Button */}
-                        <button
-                            onClick={handleEditMode}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                            title="글 수정"
-                        >
-                            <Edit2 size={18} />
-                            <span className="text-sm font-medium">수정</span>
-                        </button>
+                        {/* Edit Button - 자신의 글일 때만 표시 */}
+                        {myPenName === article.author.penName && (
+                            <button
+                                onClick={handleEditMode}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                title="글 수정"
+                            >
+                                <Edit2 size={18} />
+                                <span className="text-sm font-medium">수정</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>

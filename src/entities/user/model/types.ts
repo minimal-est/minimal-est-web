@@ -1,30 +1,24 @@
-export interface AuthInfo {
-    uuid: string;
+export interface JwtPayload {
+    sub: string;
 }
 
-export interface BlogInfo {
-    blogId: string;
-    penName: string;
+// 토큰에서 추출한 인증 정보를 정의합니다.
+export interface AuthInfo {
+    userId: string;
 }
 
 export interface AuthState {
+    // state
     accessToken: string | null;
-    setAccessToken: (token: string) => void;
     authInfo: AuthInfo | null;
-    setAuthInfo: (authInfo: AuthInfo) => void;
     isSignedIn: boolean;
-    setIsSignedIn: (state: boolean) => void;
+    blogId: string | null;
+    penName: string | null;
+
+    // action
+    setAccessToken: (token: string) => void;
     signIn: (token: string) => void;
     signOut: () => void;
-}
-
-export interface UserState {
-    blogInfo: BlogInfo | null;
-    setBlogInfo: (blogInfo: BlogInfo) => void;
+    setBlogInfo: (blogId: string, penName: string) => void;
     clearBlogInfo: () => void;
-    hasBlog: () => boolean;
-}
-
-export interface JwtPayload {
-    sub: string;
 }

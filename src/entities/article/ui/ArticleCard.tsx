@@ -23,7 +23,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
 
     return (
         <Link
-            to={`/${article.author.penName}/${article.articleId}`}
+            to={`/articles/${article.author.penName}/${article.articleId}`}
             className="block transition-all duration-200 hover:no-underline"
         >
             <article className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-6 transition-shadow duration-200 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -39,7 +39,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                             {article.author.penName}
                         </div>
                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                            {formatDate(article.completedAt)}
+                            {formatDate(article.publishedAt)}
                         </div>
                     </div>
                 </div>

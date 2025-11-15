@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "@/entities/auth/model";
 import { signupUser } from "@/entities/auth/api/signupApi";
 import { loginUser } from "@/entities/auth/api/authApi";
 import type { SignupRequest } from "@/entities/auth/model/types";
-import type { SignupResponse } from "@/entities/auth/api/signupApi";
+import { useAuthStore } from "@/entities/user/lib";
 
 export const SignupPage = () => {
     const navigate = useNavigate();
-    const { setUser, setAccessToken, setError, isLoading, setIsLoading, error } = useAuthStore();
+    const { signIn } = useAuthStore();
 
     const [formData, setFormData] = useState<SignupRequest>({
         email: "",
@@ -17,6 +16,8 @@ export const SignupPage = () => {
     });
 
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -66,7 +67,7 @@ export const SignupPage = () => {
 
         try {
             // 1. 회원가입
-            const signupResult: SignupResponse = await signupUser({
+            await signupUser({
                 email: formData.email,
                 password: formData.password,
                 confirmPassword: formData.confirmPassword,
@@ -78,12 +79,7 @@ export const SignupPage = () => {
                 password: formData.password,
             });
 
-            setAccessToken(loginResult.accessToken);
-            setUser({
-                userId: signupResult.userUUID,
-                email: formData.email,
-                penName: "",
-            });
+            signIn(loginResult.accessToken);
 
             navigate("/blog-create");
         } catch (err: any) {

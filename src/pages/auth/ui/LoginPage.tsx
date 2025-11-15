@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "@/entities/auth/model";
 import { loginUser } from "@/entities/auth/api/authApi";
 import type { LoginRequest } from "@/entities/auth/model/types";
+import { useAuthStore } from "@/entities/user/lib";
 
 export const LoginPage = () => {
     const navigate = useNavigate();
-    const { setUser, setAccessToken, setError, isLoading, setIsLoading, error } = useAuthStore();
+    const { signIn } = useAuthStore();
 
     const [formData, setFormData] = useState<LoginRequest>({
         email: "",
         password: "",
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -25,14 +27,7 @@ export const LoginPage = () => {
 
         try {
             const result = await loginUser(formData);
-            setAccessToken(result.accessToken);
-
-            // 사용자 정보는 별도로 설정 (penName은 추후 API에서 가져오기)
-            setUser({
-                ...result.user,
-                penName: formData.email.split("@")[0], // 임시
-            });
-
+            signIn(result.accessToken);
             navigate("/");
         } catch (err: any) {
             const errorMessage = err?.response?.data?.detail || "로그인에 실패했습니다. 다시 시도해주세요.";

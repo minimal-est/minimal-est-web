@@ -1,23 +1,16 @@
 import { ArticleList } from "@/entities/article/ui";
-import { mockArticleSummaries } from "@/entities/article/model";
+import { useRecommendArticles } from "@/entities/article/lib/hooks";
+import { Skeleton } from "@/shared/ui/base";
 
 export const ArticleFeed = () => {
-    // For now, use mock data. Later replace with useRecommendArticles()
-    // const { data: articles = [], isLoading, error } = useRecommendArticles();
-
-    const articles = mockArticleSummaries;
-    const isLoading = false;
-    const error = null;
+    const { data: articles = [], isLoading, error } = useRecommendArticles();
 
     if (isLoading) {
         return (
             <div className="w-full max-w-6xl mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div>
                     {[...Array(8)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="h-64 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-lg animate-pulse"
-                        />
+                        <Skeleton key={i}/>
                     ))}
                 </div>
             </div>

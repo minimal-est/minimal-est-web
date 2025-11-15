@@ -10,7 +10,9 @@ interface TiptapEditorWidgetProps {
 export const TiptapEditorWidget = ({ value, onChange }: TiptapEditorWidgetProps) => {
     const editor = useEditor({
         extensions: [StarterKit],
-        content: value,
+        content: value && value.length > 0
+              ? { type: 'doc', content: value }  // ← doc 구조로 감싸기
+              : '',
         onUpdate: ({ editor }) => {
             onChange?.(editor.getJSON().content || [])
         },

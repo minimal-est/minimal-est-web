@@ -8,13 +8,16 @@ interface TiptapRendererProps {
 
 export const TiptapRenderer = ({ nodes }: TiptapRendererProps) => {
     const html = generateHTML(
-        { type: "doc", content: nodes },
+        {
+            type: "doc",
+            content: nodes,
+        },
         [StarterKit]
     );
 
     return (
         <div
-            className="prose dark:prose-invert max-w-none"
+            className="prose dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );

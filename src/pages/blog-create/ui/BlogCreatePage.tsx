@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserStore } from "@/entities/user/model";
 import { createBlog } from "@/entities/blog/api";
+import { useAuthStore } from "@/entities/user/lib";
 
 export const BlogCreatePage = () => {
     const navigate = useNavigate();
-    const { setBlogInfo } = useUserStore();
+    const { setBlogInfo } = useAuthStore();
 
     const [penName, setPenName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -45,10 +45,7 @@ export const BlogCreatePage = () => {
             const response = await createBlog({ penName });
 
             // 스토어에 블로그 정보 저장
-            setBlogInfo({
-                blogId: response.blogId,
-                penName: penName,
-            });
+            setBlogInfo(response.blogId, penName);
 
             navigate("/");
         } catch (err: any) {

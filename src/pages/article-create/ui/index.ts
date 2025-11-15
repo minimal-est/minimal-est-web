@@ -1,1 +1,1 @@
-export { ArticleCreatePage } from "./ArticleCreatePage";
+export { ArticleEditPage as ArticleCreatePage } from "./ArticleEditPage";

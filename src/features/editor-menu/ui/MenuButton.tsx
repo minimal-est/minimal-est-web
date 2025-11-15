@@ -12,6 +12,7 @@ export const MenuButton = ({
     command,
     params,
     editor,
+    // @ts-ignore - isActive은 향후 사용 예정
     isActive = false,
     disabled = false
 }: MenuButtonProps) => {

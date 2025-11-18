@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useSingleArticle } from "@/entities/article/lib";
 import { TiptapRenderer } from "@/shared/ui/TiptapRenderer";
 import { Edit2 } from "lucide-react";
@@ -7,7 +8,7 @@ import { useAuthStore } from "@/entities/user/lib";
 export const ArticleDetailPage = () => {
     const { penName, articleId } = useParams<{ penName: string; articleId: string }>();
     const navigate = useNavigate();
-    const { blogId, penName: myPenName } = useAuthStore();
+    const { penName: myPenName } = useAuthStore();
 
     const { data: article, isLoading, error } = useSingleArticle(
         { penName: penName || "", articleId: articleId || "" },
@@ -43,14 +44,19 @@ export const ArticleDetailPage = () => {
         );
     }
 
-    const formatDate = (date: Date) => {
+    const formatDateTime = (date: Date) => {
         const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-        return `${months[date.getMonth()]} ${date.getDate()}일`;
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${month} ${day}일 ${hours}시 ${minutes}분`;
     };
+
 
     const handleEditMode = () => {
         if (!articleId) {
-            alert("글 ID를 찾을 수 없습니다.");
+            toast.error("글 ID를 찾을 수 없습니다.");
             return;
         }
         navigate(`/write/${articleId}`, { state: { authorPenName: article?.author.penName } });
@@ -92,9 +98,12 @@ export const ArticleDetailPage = () => {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {formatDate(article.publishedAt)}
-                                </p>
+                                <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
+                                    <p>발행일 {formatDateTime(article.publishedAt)}</p>
+                                    {article.updatedAt > article.publishedAt && (
+                                        <p>마지막 수정일 {formatDateTime(article.updatedAt)}</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         {/* Edit Button - 자신의 글일 때만 표시 */}

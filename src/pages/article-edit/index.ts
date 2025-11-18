@@ -1,1 +1,1 @@
-export { ArticleEditPage } from './ui';
+export { ArticleEditPage } from '../article-create/ui/ArticleEditPage';

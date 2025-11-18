@@ -1,4 +1,7 @@
-export interface BlogInfo {
-    blogId: string;
+export interface CreateBlogRequest {
     penName: string;
+}
+
+export interface CreateBlogResponse {
+    blogId: string;
 }

@@ -8,12 +8,12 @@ export const MainHeader = () => {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-            <div className="mx-auto flex items-center justify-between px-4 py-3">
+            <div className="mx-auto flex items-center px-4 py-3">
                 {/* 왼쪽: 로고 */}
                 <Logo />
 
                 {/* 가운데: 내비게이션 */}
-                <nav>
+                <nav className="flex-1 flex justify-center">
                     <NavLink />
                 </nav>
 

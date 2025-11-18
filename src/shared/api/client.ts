@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import type { ErrorResponse } from "@/shared/api";
+import { API_BASE_URL, API_REQUEST_TIMEOUT } from '@/shared/constants';
 
 export interface AuthStore {
     getState: () => { accessToken: string | null };
@@ -8,43 +9,65 @@ export interface AuthStore {
 }
 
 export const client = axios.create({
-    baseURL: "http://localhost:8080/api/v1",
+    baseURL: API_BASE_URL,
     withCredentials: true,
-    timeout: 10000, // 10s
+    timeout: API_REQUEST_TIMEOUT,
     headers: {
         "Content-Type": "application/json",
     },
 });
 
 const axiosRefreshClient = axios.create({
-    baseURL: "http://localhost:8080/api/v1",
+    baseURL: API_BASE_URL,
     withCredentials: true,
-    timeout: 10000, // 10s
+    timeout: API_REQUEST_TIMEOUT,
     headers: {
         "Content-Type": "application/json",
         "X-Refresh-Request": true,
     }
 })
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-let refreshRejectSubscribers: ((err: any) => void)[] = [];
+/**
+ * 토큰 갱신 상태 및 구독자 관리
+ *
+ * 동시에 여러 요청이 401 에러를 받으면:
+ * 1. 첫 번째 요청만 토큰 갱신 시작
+ * 2. 나머지 요청들은 구독자로 등록되어 대기
+ * 3. 갱신 완료 후 모든 구독자에게 새 토큰 전달
+ * 4. 구독자들이 대기 중인 요청 재시도
+ */
+let isTokenRefreshing = false;
+let tokenRefreshSubscribers: ((token: string) => void)[] = [];
+let tokenRefreshErrorSubscribers: ((error: any) => void)[] = [];
 
-const onRefreshed = (token: string) => {
-    refreshSubscribers.forEach((cb) => cb(token));
-    refreshSubscribers = [];
-    refreshRejectSubscribers = [];
+/**
+ * 토큰 갱신 완료를 모든 구독자에게 알림
+ */
+const notifyTokenRefreshSuccess = (newToken: string) => {
+    tokenRefreshSubscribers.forEach((callback) => callback(newToken));
+    tokenRefreshSubscribers = [];
+    tokenRefreshErrorSubscribers = [];
 }
 
-const onRefreshedFailed = (err: any) => {
-    refreshRejectSubscribers.forEach((cb) => cb(err));
-    refreshSubscribers = [];
-    refreshRejectSubscribers = [];
+/**
+ * 토큰 갱신 실패를 모든 구독자에게 알림
+ */
+const notifyTokenRefreshFailure = (error: any) => {
+    tokenRefreshErrorSubscribers.forEach((callback) => callback(error));
+    tokenRefreshSubscribers = [];
+    tokenRefreshErrorSubscribers = [];
 }
 
-const addRefreshSubscriber = (cb: (token: string) => void, rejectCb: (err: any) => void) => {
-    refreshSubscribers.push(cb);
-    refreshRejectSubscribers.push(rejectCb);
+/**
+ * 토큰 갱신 구독자 등록
+ * 토큰 갱신 완료 또는 실패 시 콜백이 호출됨
+ */
+const registerTokenRefreshSubscriber = (
+    onSuccess: (token: string) => void,
+    onFailure: (error: any) => void
+) => {
+    tokenRefreshSubscribers.push(onSuccess);
+    tokenRefreshErrorSubscribers.push(onFailure);
 }
 
 export const setupInterceptors = (store: AuthStore) => {
@@ -87,43 +110,45 @@ export const setupInterceptors = (store: AuthStore) => {
 
             // Access Token 만료 시
             if (errorResponse.status === 401 && !originalRequest._retry) {
-                if (isRefreshing) {
-                    // 이미 토큰 재발급 갱신 중이라면 대기
+                if (isTokenRefreshing) {
+                    // 이미 토큰 갱신 중이라면 대기
                     return new Promise((resolve, reject) => {
-                        const resolveSubscriber = (token: string) => {
-                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                        const onSuccess = (newToken: string) => {
+                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
                             resolve(client(originalRequest));
                         };
-                        const rejectSubscriber = (err: any) => {
-                            reject(err);
+                        const onFailure = (error: any) => {
+                            reject(error);
                         }
-                        addRefreshSubscriber(resolveSubscriber, rejectSubscriber);
+                        registerTokenRefreshSubscriber(onSuccess, onFailure);
                     });
                 }
 
                 originalRequest._retry = true;
-                isRefreshing = true;
+                isTokenRefreshing = true;
 
                 try {
                     const { setAccessToken } = store;
 
-                    // 재발급 요청
-                    const res = await axiosRefreshClient.post<{ accessToken: string }>("/auth/token/refresh");
-                    const newToken = res.data.accessToken;
+                    // 토큰 갱신 요청
+                    const refreshResponse = await axiosRefreshClient.post<{ accessToken: string }>(
+                        "/auth/token/refresh"
+                    );
+                    const newToken = refreshResponse.data.accessToken;
 
                     setAccessToken(newToken);
 
-                    // 대기 중인 요청 모두 시도
-                    onRefreshed(newToken);
+                    // 대기 중인 모든 요청들에게 새 토큰 전달
+                    notifyTokenRefreshSuccess(newToken);
                     return client(originalRequest);
                 } catch (refreshError) {
                     const { signOut: logout } = store;
                     logout();
-                    onRefreshedFailed(refreshError);
+                    notifyTokenRefreshFailure(refreshError);
 
                     return Promise.reject(toErrorResponse(refreshError as AxiosError));
                 } finally {
-                    isRefreshing = false;
+                    isTokenRefreshing = false;
                 }
             }
 

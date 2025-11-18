@@ -9,12 +9,14 @@ import { LoginPage, SignupPage } from "@/pages/auth/ui";
 import { ErrorPage } from "@/pages/error/ui";
 import { useAuthStore, useFetchBlogInfo } from "@/entities/user/lib";
 import { Spinner } from "@/shared/ui/base";
+import { toast } from "sonner";
 
 // Protected Route Component - 로그인 체크
 const RequireLoginRoute = ({ children }: { children: React.ReactNode }) => {
     const { isSignedIn } = useAuthStore();
 
     if (!isSignedIn) {
+        toast.info('로그인이 필요합니다.'); 
         return <Navigate to="/login" replace />;
     }
 
@@ -27,6 +29,7 @@ const RequireBlogRoute = ({ children }: { children: React.ReactNode }) => {
     const { isLoading } = useFetchBlogInfo();
 
     if (!isSignedIn) {
+        toast.info('로그인이 필요합니다.');
         return <Navigate to="/login" replace />;
     }
 
@@ -37,6 +40,7 @@ const RequireBlogRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (!blogId) {
+        toast.info('블로그를 먼저 개설해주세요!');
         return <Navigate to="/blog-create" replace />;
     }
 
@@ -79,15 +83,6 @@ const router = createBrowserRouter([
                 ),
             },
             {
-                // 글 쓰기 (새로운 또는 기존 글 작성/편집)
-                path: "write/:articleId",
-                element: (
-                    <RequireBlogRoute>
-                        <ArticleCreatePage isEditMode={true} />
-                    </RequireBlogRoute>
-                ),
-            },
-            {
                 // 내 글 관리
                 path: "articles/manage",
                 element: (
@@ -97,7 +92,18 @@ const router = createBrowserRouter([
                 ),
             },
             {
-                // 글 상세 보기 (마지막에 배치 - 가장 일반적인 패턴)
+                // 글 작성 또는 편집 (API의 status로 모드 결정)
+                // PUBLISHED 글 → 수정 (수정완료)
+                // DRAFT 글 → 작성 (저장/발행)
+                path: "write/:articleId",
+                element: (
+                    <RequireBlogRoute>
+                        <ArticleCreatePage isEditMode={false} />
+                    </RequireBlogRoute>
+                ),
+            },
+            {
+                // 글 상세 보기
                 path: "articles/:penName/:articleId",
                 element: <ArticleDetailPage />
             },

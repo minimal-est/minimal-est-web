@@ -13,7 +13,7 @@ export const blogApi = {
     },
 
     fetchBlogByPenName: async (penName: string) => {
-        const response = await client.get<Omit<BlogInfoResponse, 'userId'>>(`/blogs/${penName}`)
+        const response = await client.get<BlogInfoResponse>(`/blogs/${penName}`)
         return response.data;
     },
 }

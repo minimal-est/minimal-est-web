@@ -2,7 +2,7 @@ import { client } from "@/shared/api";
 import type { SignupRequest } from "../model/types";
 
 export interface SignupResponse {
-    userUUID: string;
+    userId: string;
 }
 
 /**

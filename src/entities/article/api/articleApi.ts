@@ -1,6 +1,7 @@
 import { client } from "@/shared/api";
 import type { ArticleDetail, ArticleSummary, ArticleSummaryResponse, ArticleDetailResponse, findSingleArticleParams, MyArticlesResponse, ArticleStatusFilter } from "../model/types";
 import type { JSONContent } from "@tiptap/core";
+import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from "@/shared/constants";
 
 /**
  * 추천 아티클 목록 조회
@@ -19,26 +20,46 @@ export const fetchRecommendArticles = async (): Promise<ArticleSummary[]> => {
 
 /**
  * 단일 아티클 조회 (상세 페이지)
- * @param params - penName, articleId를 포함한 파라미터
- * @throws {ErrorResponse} API 에러
+ *
+ * @param params - { penName: 작가 필명, articleId: 글 ID }
+ * @returns 글 상세 정보 (콘텐츠 포함)
+ * @throws {ErrorResponse} API 에러 (404: 글 없음, 403: 접근 권한 없음 등)
  */
-export const fetchSingleArticle = async (params: findSingleArticleParams): Promise<ArticleDetail> => {
+export const fetchSingleArticle = async (
+    params: findSingleArticleParams
+): Promise<ArticleDetail> => {
     const { articleId } = params;
-    const response = await client.get<ArticleDetailResponse>(`/blogs/${params.penName}/articles/${articleId}/details`);
+    const response = await client.get<ArticleDetailResponse>(
+        `/blogs/${params.penName}/articles/${articleId}/details`
+    );
 
+    /**
+     * API에서 받은 콘텐츠는 JSON 문자열로 직렬화되어 있음
+     * 두 가지 형식으로 저장될 수 있음:
+     *
+     * 형식 1 - Tiptap 기본 구조 (단일 루트 노드):
+     *   { type: 'doc', content: [...] }
+     *
+     * 형식 2 - 직렬화된 배열 (호환성):
+     *   [...]
+     *
+     * 이 함수는 두 형식을 모두 처리하고 표준화된 JSONContent[] 배열로 반환
+     */
     let parsedContent: JSONContent[] = [];
 
     try {
-        let content: any = JSON.parse(response.data.content);
+        const content = JSON.parse(response.data.content);
 
-        // doc으로 감싸져 있으면 추출, 배열이면 그대로 사용
         if (content?.type === 'doc' && Array.isArray(content.content)) {
+            // 형식 1: Tiptap doc 구조에서 내용 배열 추출
             parsedContent = content.content;
         } else if (Array.isArray(content)) {
+            // 형식 2: 이미 배열 형식
             parsedContent = content;
         }
-    } catch (e) {
-        // 파싱 실패하면 빈 배열
+    } catch (_parseError) {
+        // JSON 파싱 실패 시 빈 배열로 처리
+        // (향후 에러 로깅 추가 권장)
         parsedContent = [];
     }
 
@@ -80,7 +101,7 @@ export const updateArticle = async (
     title: string,
     content: JSONContent[],
     description: string,
-): Promise<{ articleId: string; title: string; description: string }> => {
+): Promise<{ articleId: string; }> => {
     const response = await client.put<{ articleId: string; title: string; description: string; }>(
         `/blogs/${blogId}/articles/${articleId}`,
         {
@@ -112,25 +133,31 @@ export const completeArticle = async (
  * 내 글 목록 조회
  * @param blogId - 블로그 ID
  * @param status - DRAFT | PUBLISHED | ALL (기본값: ALL)
- * @param search - 제목 검색어
- * @param page - 페이지 (0부터 시작)
- * @param size - 페이지당 항목 수
+ * @param search - 제목 검색어 (기본값: '')
+ * @param page - 페이지 번호 (0부터 시작, 기본값: 0)
+ * @param size - 페이지당 항목 수 (기본값: 10)
+ * @returns MyArticlesResponse - 페이지네이션된 글 목록
  * @throws {ErrorResponse} API 에러
  */
 export const fetchMyArticles = async (
     blogId: string,
     status: ArticleStatusFilter = 'ALL',
     search: string = '',
-    page: number = 0,
-    size: number = 10
+    page: number = DEFAULT_PAGE_NUMBER,
+    size: number = DEFAULT_PAGE_SIZE
 ): Promise<MyArticlesResponse> => {
     const params = new URLSearchParams();
+
+    // ALL이 아닌 경우에만 상태 필터 추가
     if (status && status !== 'ALL') {
         params.append('status', status);
     }
+
+    // 검색어가 있는 경우에만 추가
     if (search) {
         params.append('search', search);
     }
+
     params.append('page', page.toString());
     params.append('size', size.toString());
 
@@ -138,7 +165,13 @@ export const fetchMyArticles = async (
         `/blogs/${blogId}/articles/my?${params.toString()}`
     );
 
-    // API 응답을 MyArticlesResponse 형식으로 변환
+    /**
+     * API 응답 구조가 불일치할 수 있음:
+     * - response.data.articles 존재: { articles: { content: [], page: { ... } } }
+     * - response.data 직접: { content: [], page: { ... } }
+     *
+     * 두 구조 모두 처리하기 위해 OR 연산자 사용
+     */
     const articlesData = response.data.articles || response.data;
     const pageInfo = articlesData.page || {};
 
@@ -155,8 +188,8 @@ export const fetchMyArticles = async (
         })),
         totalElements: pageInfo.totalElements || 0,
         totalPages: pageInfo.totalPages || 0,
-        currentPage: pageInfo.number || 0,
-        pageSize: pageInfo.size || 10,
+        currentPage: pageInfo.number || DEFAULT_PAGE_NUMBER,
+        pageSize: pageInfo.size || DEFAULT_PAGE_SIZE,
     };
 };
 

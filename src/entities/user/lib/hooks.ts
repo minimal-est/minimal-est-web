@@ -14,7 +14,8 @@ export const useFetchBlogInfo = () => {
             return data;
         },
         enabled: !!authInfo?.userId,
-        staleTime: 1000 * 60 * 60, // 1시간
+        staleTime: 1000 * 60 * 60, // 1시간,
+        retry: 0,
     });
 
     return { isLoading, error };

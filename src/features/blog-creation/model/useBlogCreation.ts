@@ -5,6 +5,7 @@ import { useAuthStore } from "@/entities/user/lib";
 import {
     PEN_NAME_MIN_LENGTH,
     PEN_NAME_MAX_LENGTH,
+    PEN_NAME_REGEX,
     VALIDATION_MESSAGES
 } from "@/shared/constants";
 
@@ -15,12 +16,14 @@ export const useBlogCreation = () => {
     const [penName, setPenName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     /**
      * 필명 유효성 검사
      * - 필수 입력
-     * - 최소 2자 이상
-     * - 최대 50자 이하
+     * - 최소 3자 이상
+     * - 최대 20자 이하
+     * - 한글, 영문, 숫자, 하이픈, 언더스코어 허용
      */
     const validatePenName = (): boolean => {
         if (!penName.trim()) {
@@ -38,7 +41,44 @@ export const useBlogCreation = () => {
             return false;
         }
 
+        if (!PEN_NAME_REGEX.test(penName)) {
+            setError(VALIDATION_MESSAGES.PEN_NAME_INVALID);
+            return false;
+        }
+
         return true;
+    };
+
+    /**
+     * 실시간 유효성 검사 (입력할 때마다 실행)
+     */
+    const validatePenNameRealtime = (value: string): void => {
+        if (!value.trim()) {
+            setValidationError(null);
+            return;
+        }
+
+        if (value.length < PEN_NAME_MIN_LENGTH) {
+            setValidationError(VALIDATION_MESSAGES.PEN_NAME_TOO_SHORT);
+            return;
+        }
+
+        if (value.length > PEN_NAME_MAX_LENGTH) {
+            setValidationError(VALIDATION_MESSAGES.PEN_NAME_TOO_LONG);
+            return;
+        }
+
+        if (!PEN_NAME_REGEX.test(value)) {
+            setValidationError(VALIDATION_MESSAGES.PEN_NAME_INVALID);
+            return;
+        }
+
+        setValidationError(null);
+    };
+
+    const handlePenNameChange = (value: string): void => {
+        setPenName(value);
+        validatePenNameRealtime(value);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +93,7 @@ export const useBlogCreation = () => {
 
         try {
             const response = await createBlog({ penName });
-            setBlogInfo(response.blogId, penName);
+            setBlogInfo(response.blogId, penName, "");
             navigate("/");
         } catch (err: any) {
             const errorMessage = err?.detail || VALIDATION_MESSAGES.REQUIRED_FIELD;
@@ -65,9 +105,10 @@ export const useBlogCreation = () => {
 
     return {
         penName,
-        setPenName,
+        handlePenNameChange,
         isLoading,
         error,
+        validationError,
         handleSubmit,
     };
 };

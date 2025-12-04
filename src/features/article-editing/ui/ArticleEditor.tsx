@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { TiptapEditorWidget } from "@/widgets/tiptap-editor/ui";
 import { useArticleEditor } from "../model/useArticleEditor";
 import { ArticlePreviewModal } from "./ArticlePreviewModal";
+import { ARTICLE_TITLE_MAX_LENGTH, ARTICLE_DESCRIPTION_MAX_LENGTH } from "@/shared/constants";
 
 interface ArticleEditorProps {
     articleId?: string;
@@ -88,7 +89,7 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
                         >
                             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="font-medium">목록으로</span>
+                            <span className="font-medium">돌아가기</span>
                         </button>
                     </div>
                 </div>
@@ -96,28 +97,60 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
 
             {/* 메인(편집) */}
             <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
-                <form id="article-form" className="space-y-8">
+                <form id="article-form" className="space-y-8" onSubmit={(e) => e.preventDefault()}>
                     {/* Title Input */}
                     <div className="space-y-3">
-                        <input
-                            type="text"
+                        <textarea
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                const newValue = e.target.value;
+                                if (newValue.length > ARTICLE_TITLE_MAX_LENGTH) {
+                                    return;
+                                }
+                                setTitle(newValue);
+                            }}
                             placeholder="글의 제목을 입력하세요..."
-                            className="w-full text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none"
+                            rows={1}
+                            className="w-full text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none resize-none overflow-hidden"
+                            onInput={(e) => {
+                                const target = e.currentTarget;
+                                target.style.height = 'auto';
+                                target.style.height = target.scrollHeight + 'px';
+                            }}
                         />
-                        <div className="h-1 w-12 bg-violet-600 rounded-full" />
+                        <div className="flex items-center justify-between">
+                            <div className="h-1 w-12 bg-violet-600 rounded-full" />
+                            <span className={`text-xs ${title.length === ARTICLE_TITLE_MAX_LENGTH ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                                {title.length} / {ARTICLE_TITLE_MAX_LENGTH}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Description Input */}
                     <div>
                         <textarea
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            onChange={(e) => {
+                                const newValue = e.target.value;
+                                if (newValue.length > ARTICLE_DESCRIPTION_MAX_LENGTH) {
+                                    return;
+                                }
+                                setDescription(newValue);
+                            }}
                             placeholder="글의 간단한 설명을 작성하세요. 목록에서 미리보기로 보여집니다."
                             rows={2}
-                            className="w-full text-lg text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none resize-none focus:outline-none leading-relaxed"
+                            className="w-full text-lg text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none resize-none overflow-hidden focus:outline-none leading-relaxed"
+                            onInput={(e) => {
+                                const target = e.currentTarget;
+                                target.style.height = 'auto';
+                                target.style.height = target.scrollHeight + 'px';
+                            }}
                         />
+                        <div className="text-right">
+                            <span className={`text-xs ${description.length === ARTICLE_DESCRIPTION_MAX_LENGTH ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                                {description.length} / {ARTICLE_DESCRIPTION_MAX_LENGTH}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Divider */}
@@ -130,18 +163,18 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                 </form>
             </main>
 
-            {/* 고정된 하단 버튼 */}
-            <div className="sticky bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-4">
-                <div className="max-w-3xl mx-auto flex gap-3 justify-end">
+            {/* 플로팅 하단 버튼 */}
+            <div className="fixed bottom-8 right-8 z-40 flex gap-2">
+                <div className="flex gap-2">
                     {editorIsEditMode ? (
                         // 수정 모드: 수정완료 버튼만
                         <button
                             type="button"
                             onClick={handleSave}
                             disabled={isLoading}
-                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
                         >
-                            <Check size={18} />
+                            <Check size={16} />
                             {isLoading ? "수정 중..." : "수정완료"}
                         </button>
                     ) : (
@@ -151,18 +184,18 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                                 type="button"
                                 onClick={handleSave}
                                 disabled={isLoading}
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-none hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
                             >
-                                <Save size={18} />
+                                <Save size={16} />
                                 {isLoading ? "저장 중..." : "저장"}
                             </button>
                             <button
                                 type="button"
                                 onClick={handlePublish}
                                 disabled={isLoading}
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
                             >
-                                <Send size={18} />
+                                <Send size={16} />
                                 {isLoading ? "발행 중..." : "발행"}
                             </button>
                         </>

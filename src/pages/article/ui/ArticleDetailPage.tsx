@@ -1,19 +1,87 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { toast } from "sonner";
+import { useEffect } from "react";
 import { useSingleArticle } from "@/entities/article/lib";
 import { TiptapRenderer } from "@/shared/ui/TiptapRenderer";
-import { Edit2 } from "lucide-react";
-import { useAuthStore } from "@/entities/user/lib";
+import { Edit2, Share2 } from "lucide-react";
+import { useAuth } from "@/entities/user/lib";
+import { ReactionStatsSection } from "@/features/article-reacting";
+import { ProfileAvatar } from "@/entities/blog/ui";
+import { ArticleCommentsWidget } from "@/widgets/article-comments";
+import { useBookmarkAdding, BookmarkAddFloatingButton, BookmarkAddModal } from "@/features/bookmark-adding";
+import { ArticleNavigationWidget } from "@/widgets/article-navigation/ui";
 
 export const ArticleDetailPage = () => {
     const { penName, articleId } = useParams<{ penName: string; articleId: string }>();
     const navigate = useNavigate();
-    const { penName: myPenName } = useAuthStore();
+    const { penName: myPenName } = useAuth();
 
     const { data: article, isLoading, error } = useSingleArticle(
         { penName: penName || "", articleId: articleId || "" },
         !!(penName && articleId)
     );
+
+    const { isSignedIn } = useAuth();
+
+    // SEO 메타 태그 설정
+    useEffect(() => {
+        if (!article) return;
+
+        document.title = `${article.title} | Minimal-est Web`;
+
+        const updateMeta = (name: string, content: string) => {
+            let meta = document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('name', name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        };
+
+        const description = article.description || article.title;
+        updateMeta('description', description);
+        updateMeta('author', article.author.penName);
+
+        // Open Graph (소셜 미디어 공유)
+        const updateOG = (property: string, content: string) => {
+            let meta = document.querySelector(`meta[property="${property}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('property', property);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        };
+
+        const baseUrl = window.location.origin;
+        const articleUrl = `${baseUrl}/articles/${penName}/${articleId}`;
+
+        updateOG('og:title', article.title);
+        updateOG('og:description', description);
+        updateOG('og:type', 'article');
+        updateOG('og:url', articleUrl);
+        updateOG('article:author', article.author.penName);
+        updateOG('article:published_time', article.publishedAt.toISOString());
+
+        return () => {
+            // 클린업
+        };
+    }, [article, penName, articleId]);
+
+    const bookmarkAdding = useBookmarkAdding({
+        collectionId: '',
+    });
+
+    const handleBookmarkClick = () => {
+        if (!isSignedIn) {
+            toast.error('북마크는 로그인 후 사용 가능합니다');
+            return;
+        }
+        bookmarkAdding.setIsOpen(true);
+    };
 
     if (isLoading) {
         return (
@@ -45,12 +113,7 @@ export const ArticleDetailPage = () => {
     }
 
     const formatDateTime = (date: Date) => {
-        const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-        const month = months[date.getMonth()];
-        const day = date.getDate();
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        return `${month} ${day}일 ${hours}시 ${minutes}분`;
+        return format(date, "M월 d일 H:mm", { locale: ko });
     };
 
 
@@ -60,6 +123,22 @@ export const ArticleDetailPage = () => {
             return;
         }
         navigate(`/write/${articleId}`, { state: { authorPenName: article?.author.penName } });
+    };
+
+    const handleShare = () => {
+        if (!penName || !articleId) {
+            toast.error("링크 복사에 실패했습니다.");
+            return;
+        }
+
+        const baseUrl = window.location.origin;
+        const articleUrl = `${baseUrl}/articles/${penName}/${articleId}`;
+
+        navigator.clipboard.writeText(articleUrl).then(() => {
+            toast.success('링크가 복사되었습니다');
+        }).catch(() => {
+            toast.error('링크 복사에 실패했습니다');
+        });
     };
 
 
@@ -80,16 +159,30 @@ export const ArticleDetailPage = () => {
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
                         {article.title}
                     </h1>
+                    <h2 className="text-2xl">
+                        {article.description}
+                    </h2>
+
+                    <div>
+                        <ReactionStatsSection
+                            showCompact={true}
+                            articleId={article.articleId}
+                        />
+                    </div>
 
                     {/* Author Info */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white font-semibold text-lg">
-                                {article.author.penName.charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-3">
+                            <div className="">
+                                <ProfileAvatar
+                                    penName={article.author.penName}
+                                    profileImageUrl={article.author.profileImageUrl}
+                                    size="sm"
+                                />
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">
-                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                         {article.author.penName}
                                     </p>
                                     {article.status === 'DRAFT' && (
@@ -99,34 +192,86 @@ export const ArticleDetailPage = () => {
                                     )}
                                 </div>
                                 <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
-                                    <p>발행일 {formatDateTime(article.publishedAt)}</p>
+                                    <p>발행일 ・ {formatDateTime(article.publishedAt)}</p>
                                     {article.updatedAt > article.publishedAt && (
-                                        <p>마지막 수정일 {formatDateTime(article.updatedAt)}</p>
+                                        <p className="text-xs">마지막 수정일 ・ {formatDateTime(article.updatedAt)}</p>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        {/* Edit Button - 자신의 글일 때만 표시 */}
-                        {myPenName === article.author.penName && (
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            {/* Share Button */}
                             <button
-                                onClick={handleEditMode}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                title="글 수정"
+                                onClick={handleShare}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                title="링크 복사"
                             >
-                                <Edit2 size={18} />
-                                <span className="text-sm font-medium">수정</span>
+                                <Share2 size={18} />
+                                <span className="text-sm font-medium">공유</span>
                             </button>
-                        )}
+
+                            {/* Edit Button - 자신의 글일 때만 표시 */}
+                            {myPenName === article.author.penName && (
+                                <button
+                                    onClick={handleEditMode}
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                    title="글 수정"
+                                >
+                                    <Edit2 size={18} />
+                                    <span className="text-sm font-medium">수정</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
 
             {/* Content */}
-            <main className="max-w-3xl mx-auto px-4 py-12">
+            <article className="max-w-3xl mx-auto px-4 py-12">
                 <div className="prose dark:prose-invert max-w-none">
                     <TiptapRenderer nodes={article.content} />
                 </div>
-            </main>
+            </article>
+
+            {/* Prev And Next Navigator */}
+            <ArticleNavigationWidget
+                articleId={article.articleId}
+            />
+
+            {/* Reactions Footer */}
+            <footer className="flex justify-center">
+                <div className="max-w-3xl px-4 py-8 w-full">
+                    <ReactionStatsSection
+                        articleId={article.articleId}
+                        showCompact={false}
+                    />
+                </div>
+            </footer>
+
+            {/* Comments Section */}
+            <section className="bg-gray-50 dark:bg-gray-800 py-12">
+                <div className="max-w-3xl mx-auto px-4">
+                    <ArticleCommentsWidget articleId={article.articleId} />
+                </div>
+            </section>
+
+            {/* Floating Bookmark Button */}
+            <BookmarkAddFloatingButton
+                isLoading={bookmarkAdding.isLoading}
+                onClick={handleBookmarkClick}
+            />
+
+            {/* Bookmark Add Modal */}
+            <BookmarkAddModal
+                isOpen={bookmarkAdding.isOpen}
+                isLoading={bookmarkAdding.isLoading}
+                articleId={articleId}
+                onClose={() => bookmarkAdding.setIsOpen(false)}
+                onAdd={async (articleIdParam, collectionIdParam) => {
+                    await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
+                }}
+            />
         </div>
     );
 };

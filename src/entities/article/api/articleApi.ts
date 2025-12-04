@@ -1,5 +1,5 @@
 import { client } from "@/shared/api";
-import type { ArticleDetail, ArticleSummary, ArticleSummaryResponse, ArticleDetailResponse, findSingleArticleParams, MyArticlesResponse, ArticleStatusFilter } from "../model/types";
+import type { ArticleDetail, ArticleSummary, ArticleSummaryResponse, ArticleDetailResponse, findSingleArticleParams, MyArticlesResponse, ArticlesResponse, ArticleStatusFilter, PrevAndNextArticleSummary } from "../model/types";
 import type { JSONContent } from "@tiptap/core";
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from "@/shared/constants";
 
@@ -16,6 +16,42 @@ export const fetchRecommendArticles = async (): Promise<ArticleSummary[]> => {
         publishedAt: new Date(article.publishedAt),
         author: article.author,
     }));
+};
+
+/**
+ * 추천 아티클 목록 조회 (무한스크롤용)
+ * @param page - 페이지 번호 (0부터 시작)
+ * @param limit - 페이지당 항목 수
+ * @returns ArticlesResponse - 페이지네이션된 글 목록
+ * @throws {ErrorResponse} API 에러
+ */
+export const fetchRecommendArticlesWithPagination = async (
+    page: number,
+    limit: number
+): Promise<ArticlesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+
+    const response = await client.get<any>(`/articles/recommend?${params.toString()}`);
+
+    const articles = response.data.articleSummaries || [];
+
+    return {
+        content: articles.map((article: any) => ({
+            articleId: article.articleId,
+            title: article.title,
+            description: article.description,
+            publishedAt: new Date(article.publishedAt),
+            author: article.author,
+        })),
+        totalElements: 0,
+        totalPages: 0,
+        currentPage: page,
+        pageSize: limit,
+        // 받은 글이 limit보다 적으면 마지막 페이지
+        hasMore: articles.length >= limit,
+    };
 };
 
 /**
@@ -77,6 +113,17 @@ export const fetchSingleArticle = async (
 };
 
 /**
+ * 해당 아티클 기준으로 이전, 다음 발행된 아티클 조회
+ * 없으면 null이 반환됨
+ * @param articleId 기준 아티클
+ * @returns 이전, 다음 글
+ */
+export const fetchPrevAndNextArticle = async (articleId: string): Promise<PrevAndNextArticleSummary> => {
+    const response = await client.get<any>(`/articles/${articleId}/prev-and-next`);
+    return response.data;
+}
+
+/**
  * 글 생성 (빈 상태)
  * @param blogId - 블로그 ID
  * @returns { articleId }
@@ -100,6 +147,7 @@ export const updateArticle = async (
     articleId: string,
     title: string,
     content: JSONContent[],
+    pureContent: string,
     description: string,
 ): Promise<{ articleId: string; }> => {
     const response = await client.put<{ articleId: string; title: string; description: string; }>(
@@ -107,6 +155,7 @@ export const updateArticle = async (
         {
             title,
             content: JSON.stringify(content),
+            pureContent,
             description,
         }
     );
@@ -204,4 +253,44 @@ export const deleteArticle = async (
     articleId: string
 ): Promise<void> => {
     await client.delete(`/blogs/${blogId}/articles/${articleId}`);
+};
+
+/**
+ * 글 검색
+ * @param query - 검색어
+ * @param page - 페이지 번호 (0부터 시작, 기본값: 0)
+ * @param size - 페이지당 항목 수 (기본값: 15)
+ * @returns ArticlesResponse - 페이지네이션된 검색 결과
+ * @throws {ErrorResponse} API 에러
+ */
+export const searchArticles = async (
+    query: string,
+    page: number = DEFAULT_PAGE_NUMBER,
+    size: number = DEFAULT_PAGE_SIZE
+): Promise<ArticlesResponse> => {
+    const params = new URLSearchParams();
+    params.append('query', query);
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+
+    const response = await client.get<any>(
+        `/articles/search?${params.toString()}`
+    );
+
+    const articlesData = response.data.articles;
+    const pageInfo = articlesData.page;
+
+    return {
+        content: articlesData.content.map((article: any) => ({
+            articleId: article.articleId,
+            title: article.title,
+            description: article.description,
+            publishedAt: new Date(article.publishedAt),
+            author: article.author,
+        })),
+        totalElements: pageInfo.totalElements,
+        totalPages: pageInfo.totalPages,
+        currentPage: pageInfo.number,
+        pageSize: pageInfo.size,
+    };
 };

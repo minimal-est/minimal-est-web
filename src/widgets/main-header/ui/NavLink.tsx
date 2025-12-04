@@ -13,11 +13,7 @@ interface NavItem {
     icon?: React.ElementType
 }
 
-const navItems: NavItem[] = [
-    { label: "탐색", href: "/explore"},
-    { label: "인기", href: "/trending"},
-    { label: "주제", href: "/topics"},
-]
+const navItems: NavItem[] = []
 
 export const NavLink = ({ className }: NavLinkProps) => {
 

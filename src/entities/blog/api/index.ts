@@ -1,1 +1,1 @@
-export { createBlog } from "./blogApi";
+export { createBlog, getBlogProfile } from "./blogApi";

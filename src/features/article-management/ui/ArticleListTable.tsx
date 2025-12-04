@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Trash2, Edit3, Plus } from "lucide-react";
 import type { MyArticlesResponse, MyArticleSummary } from "@/entities/article/model/types";
 import { ARTICLE_STATUS_LABELS, ARTICLE_STATUS_DRAFT } from "@/shared/constants";
+import { ReactionStatsSection } from "@/features/article-reacting";
 
 interface ArticleListTableProps {
     articlesData: MyArticlesResponse | undefined;
@@ -57,73 +58,62 @@ export const ArticleListTable = ({
     }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 dark:text-white">
-                            제목
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 dark:text-white">
-                            상태
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 dark:text-white">
-                            수정일
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-900 dark:text-white">
-                            작업
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {articlesData.content.map((article: MyArticleSummary) => (
-                        <tr
-                            key={article.articleId}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                <button
-                                    onClick={() => navigate(`/articles/${article.author.penName}/${article.articleId}`)}
-                                    className="font-medium text-violet-600 dark:text-violet-400 hover:underline"
-                                >
-                                    {article.title || "(제목 없음)"}
-                                </button>
-                            </td>
-                            <td className="px-6 py-4 text-sm">
+        <div className="space-y-3">
+            {articlesData.content.map((article: MyArticleSummary) => (
+                <div
+                    key={article.articleId}
+                    className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <button
+                                onClick={() => navigate(`/articles/${article.author.penName}/${article.articleId}`)}
+                                className="text-sm font-medium text-gray-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 truncate block"
+                            >
+                                {article.title || "(제목 없음)"}
+                            </button>
+                            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400">
                                 <span
-                                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                                    className={`px-2 py-0.5 rounded ${
                                         article.status === ARTICLE_STATUS_DRAFT
-                                            ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
-                                            : "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                                            : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                                     }`}
                                 >
                                     {ARTICLE_STATUS_LABELS[article.status] || article.status}
                                 </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                {article.updatedAt.toLocaleDateString("ko-KR")}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-right space-x-2">
-                                <button
-                                    onClick={() => onEdit(article.articleId)}
-                                    className="inline-flex items-center gap-1 px-3 py-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                >
-                                    <Edit3 size={14} />
-                                    수정
-                                </button>
-                                <button
-                                    onClick={() => onDelete(article.articleId)}
-                                    disabled={isDeleting}
-                                    className="inline-flex items-center gap-1 px-3 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded transition-colors disabled:opacity-50"
-                                >
-                                    <Trash2 size={14} />
-                                    삭제
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                <span>
+                                    {article.status === ARTICLE_STATUS_DRAFT
+                                        ? `수정: ${article.updatedAt.toLocaleDateString("ko-KR")}`
+                                        : `발행: ${article.publishedAt.toLocaleDateString("ko-KR")}`}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                            <button
+                                onClick={() => onEdit(article.articleId)}
+                                className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                title="수정"
+                            >
+                                <Edit3 size={16} />
+                            </button>
+                            <button
+                                onClick={() => onDelete(article.articleId)}
+                                disabled={isDeleting}
+                                className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                                title="삭제"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    </div>
+                    {article.status !== ARTICLE_STATUS_DRAFT && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <ReactionStatsSection articleId={article.articleId} showCompact={true} />
+                        </div>
+                    )}
+                </div>
+            ))}
         </div>
     );
 };

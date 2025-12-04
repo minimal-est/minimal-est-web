@@ -1,0 +1,1 @@
+export { ArticleCommentsWidget } from './ui';

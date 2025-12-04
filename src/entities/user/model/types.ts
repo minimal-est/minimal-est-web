@@ -14,11 +14,12 @@ export interface AuthState {
     isSignedIn: boolean;
     blogId: string | null;
     penName: string | null;
+    profileImageUrl: string | null;
 
     // action
     setAccessToken: (token: string) => void;
     signIn: (token: string) => void;
     signOut: () => void;
-    setBlogInfo: (blogId: string, penName: string) => void;
+    setBlogInfo: (blogId: string, penName: string, profileImageUrl: string) => void;
     clearBlogInfo: () => void;
 }

@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import type { ErrorResponse } from "@/shared/api";
 import { API_BASE_URL, API_REQUEST_TIMEOUT } from '@/shared/constants';
+import type { QueryClient } from '@tanstack/react-query';
 
 export interface AuthStore {
     getState: () => { accessToken: string | null };
@@ -70,14 +71,13 @@ const registerTokenRefreshSubscriber = (
     tokenRefreshErrorSubscribers.push(onFailure);
 }
 
-export const setupInterceptors = (store: AuthStore) => {
-    client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+export const setupInterceptors = (store: AuthStore, queryClientInstance?: QueryClient) => {
+    client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
         const { accessToken } = store.getState();
 
         // Access Token이 존재할 경우, Authorization 헤더 포함 후 요청 진행
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
-            return config;
         }
 
         return config;
@@ -131,19 +131,33 @@ export const setupInterceptors = (store: AuthStore) => {
                     const { setAccessToken } = store;
 
                     // 토큰 갱신 요청
+                    console.log('[Response Interceptor] Access token expired. Attempting to refresh...');
                     const refreshResponse = await axiosRefreshClient.post<{ accessToken: string }>(
                         "/auth/token/refresh"
                     );
                     const newToken = refreshResponse.data.accessToken;
 
+                    console.log('[Response Interceptor] Token refreshed successfully');
                     setAccessToken(newToken);
 
                     // 대기 중인 모든 요청들에게 새 토큰 전달
                     notifyTokenRefreshSuccess(newToken);
                     return client(originalRequest);
                 } catch (refreshError) {
+                    console.error('[Response Interceptor] Token refresh failed:', refreshError);
                     const { signOut: logout } = store;
                     logout();
+                    // 토큰 갱신 실패 시 사용자 관련 쿼리만 무효화 (다른 공개 API는 계속 실행)
+                    if (queryClientInstance) {
+                        queryClientInstance.invalidateQueries({
+                            queryKey: ['user'],
+                            exact: false,
+                        });
+                        queryClientInstance.invalidateQueries({
+                            queryKey: ['blog'],
+                            exact: false,
+                        });
+                    }
                     notifyTokenRefreshFailure(refreshError);
 
                     return Promise.reject(toErrorResponse(refreshError as AxiosError));

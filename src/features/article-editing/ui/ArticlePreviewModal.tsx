@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import type { ArticleSummary } from "@/entities/article/model/types";
-import { ArticleCard } from "@/entities/article/ui/ArticleCard";
 
 interface ArticlePreviewModalProps {
     isOpen: boolean;
@@ -26,7 +25,7 @@ export const ArticlePreviewModal = ({
     if (!isOpen || !article) return null;
 
     const isPublish = action === "publish";
-    const title = isPublish ? "이렇게 발행할까요?" : "이렇게 수정할까요?";
+    const title = isPublish ? "발행할까요?" : "수정할까요?";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -46,11 +45,13 @@ export const ArticlePreviewModal = ({
                 </div>
 
                 {/* 미리보기 */}
-                <div className="max-h-80 overflow-y-auto px-6 py-4">
-                    {/* ArticleCard를 pointer-events-none으로 감싸서 클릭 불가능하게 */}
+                {/* <div className="max-h-80 overflow-y-auto px-6 py-4">
                     <div className="pointer-events-none">
                         <ArticleCard article={article} />
                     </div>
+                </div> */}
+                <div className="px-6 py-4">
+                    <p>걱정마세요! 언제든지 수정이 가능합니다.</p>
                 </div>
 
                 {/* 버튼 영역 */}

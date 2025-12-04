@@ -1,5 +1,5 @@
 import { generateHTML } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
+import { tiptapExtensions } from "@/shared/lib/tiptapConfig";
 import type { JSONContent } from "@tiptap/core";
 
 interface TiptapRendererProps {
@@ -12,7 +12,7 @@ export const TiptapRenderer = ({ nodes }: TiptapRendererProps) => {
             type: "doc",
             content: nodes,
         },
-        [StarterKit]
+        tiptapExtensions
     );
 
     return (

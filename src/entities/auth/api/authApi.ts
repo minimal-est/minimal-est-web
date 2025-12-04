@@ -39,10 +39,29 @@ export const refreshAccessToken = async (): Promise<AccessTokenResponse> => {
 };
 
 /**
+ * 토큰 유효성 검증
+ * 앱 시작 시 저장된 토큰이 여전히 유효한지 확인
+ *
+ * @returns { userId } 사용자 ID
+ * @throws {ErrorResponse} 401 에러 (토큰 무효)
+ */
+export const validateToken = async (): Promise<{ userId: string }> => {
+    const response = await client.get<{ userId: string }>("/auth/me");
+    return response.data;
+};
+
+/**
  * 현재 사용자 정보 조회
  */
 export const getCurrentUser = async () => {
-    // TODO: 백엔드에서 현재 사용자 정보를 반환하는 API 확인
-    const response = await client.get("/api/v1/users/me");
+    const response = await client.get("/users/me");
     return response.data;
+};
+
+/**
+ * 로그아웃 (리프레시 토큰 제거)
+ * @throws {ErrorResponse} API 에러
+ */
+export const logoutUser = async (): Promise<void> => {
+    await client.post("/auth/logout");
 };

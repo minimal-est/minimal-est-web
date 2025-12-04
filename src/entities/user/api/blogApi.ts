@@ -1,9 +1,14 @@
 import { client } from "@/shared/api";
 
+export interface AuthorInfoResponse {
+    authorId: string;
+    penName: string;
+    profileImageUrl: string;
+}
+
 export interface BlogInfoResponse {
     blogId: string;
-    userId: string;
-    penName: string;
+    author: AuthorInfoResponse;
 }
 
 export const blogApi = {

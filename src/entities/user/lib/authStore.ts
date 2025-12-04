@@ -15,29 +15,32 @@ export const useAuthStore = create<AuthState>((set) => {
         if (token) {
             const authInfo = extractAuthInfo(token);
             if (authInfo) {
-                sessionStorage.setItem(ACCESS_TOKEN, token);
+                localStorage.setItem(ACCESS_TOKEN, token);
                 set({
                     accessToken: token,
                     authInfo: authInfo,
                     isSignedIn: true,
                     blogId: null,
                     penName: null,
+                    profileImageUrl: null,
                 });
             }
             return;
         }
 
-        sessionStorage.removeItem(ACCESS_TOKEN);
+        localStorage.removeItem(ACCESS_TOKEN);
         set({
             accessToken: null,
             authInfo: null,
             isSignedIn: false,
             blogId: null,
             penName: null,
+            profileImageUrl: null,
         });
     }
 
-    const initToken = sessionStorage.getItem(ACCESS_TOKEN);
+    // localStorage에서만 토큰 확인 (단일 저장소)
+    const initToken = localStorage.getItem(ACCESS_TOKEN);
     const initAuthInfo = initToken ? extractAuthInfo(initToken) : null
 
     return {
@@ -46,6 +49,7 @@ export const useAuthStore = create<AuthState>((set) => {
         isSignedIn: !!initAuthInfo,
         blogId: null,
         penName: null,
+        profileImageUrl: null,
 
         // actions
         setAccessToken: (token: string) => {
@@ -60,12 +64,12 @@ export const useAuthStore = create<AuthState>((set) => {
             updateAuthState(null);
         },
 
-        setBlogInfo: (blogId: string, penName: string) => {
-            set({ blogId, penName });
+        setBlogInfo: (blogId: string, penName: string, profileImageUrl: string) => {
+            set({ blogId, penName, profileImageUrl });
         },
 
         clearBlogInfo: () => {
-            set({ blogId: null, penName: null });
+            set({ blogId: null, penName: null, profileImageUrl: null });
         }
     }
 });

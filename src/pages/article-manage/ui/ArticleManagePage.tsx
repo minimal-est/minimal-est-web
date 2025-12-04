@@ -2,11 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { ArticleFiltersPanel, ArticleListTable, useArticleFilters } from "@/features/article-management";
-import { useAuthStore } from "@/entities/user/lib";
+import { useAuth } from "@/entities/user/lib";
 
 export const ArticleManagePage = () => {
     const navigate = useNavigate();
-    const { blogId } = useAuthStore();
+    const { blogId } = useAuth();
 
     const { status, setStatus, searchInput, setSearchInput, handleSearch, page, setPage, articlesData, isLoading, error, handleDelete, isDeleting } = useArticleFilters(blogId || "");
 
@@ -22,29 +22,29 @@ export const ArticleManagePage = () => {
         <div className="w-full min-h-screen bg-background flex flex-col">
             {/* 헤더 */}
             <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="w-full max-w-2xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <button
                             onClick={() => navigate("/")}
-                            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
+                            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                         >
-                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="font-medium">목록으로</span>
+                            <ChevronLeft size={20} />
+                            <span className="text-sm font-medium">돌아가기</span>
                         </button>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">내 글 관리</h1>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white">내 글 관리</h1>
                         <button
                             onClick={() => navigate("/articles/create")}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
+                            className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded hover:opacity-90 transition-opacity font-medium"
                         >
-                            <Plus size={18} />
-                            새 글 작성
+                            <Plus size={16} />
+                            새 글
                         </button>
                     </div>
                 </div>
             </header>
 
             {/* 메인 콘텐츠 */}
-            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+            <main className="w-full max-w-2xl mx-auto px-4 py-8 flex-1">
                 {/* 필터 및 검색 */}
                 <ArticleFiltersPanel
                     status={status}
@@ -53,6 +53,13 @@ export const ArticleManagePage = () => {
                     setSearchInput={setSearchInput}
                     onSearch={handleSearch}
                 />
+
+                {/* 글 개수 */}
+                {articlesData && (
+                    <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                        총 <span className="font-semibold text-gray-900 dark:text-white">{articlesData.totalElements}</span>개의 글
+                    </div>
+                )}
 
                 {/* 글 목록 */}
                 <ArticleListTable
@@ -75,33 +82,21 @@ export const ArticleManagePage = () => {
 
                 {/* 페이지네이션 */}
                 {articlesData && articlesData.totalPages > 1 && (
-                    <div className="mt-6 flex justify-center gap-2">
+                    <div className="mt-6 flex items-center justify-center gap-3">
                         <button
                             onClick={() => setPage(Math.max(0, page - 1))}
                             disabled={page === 0}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             이전
                         </button>
-                        <div className="flex items-center gap-2">
-                            {Array.from({ length: articlesData.totalPages }).map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setPage(i)}
-                                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                                        page === i
-                                            ? "bg-violet-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                    }`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {page + 1} / {articlesData.totalPages}
+                        </span>
                         <button
                             onClick={() => setPage(Math.min(articlesData.totalPages - 1, page + 1))}
                             disabled={page >= articlesData.totalPages - 1}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             다음
                         </button>

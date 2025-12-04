@@ -5,6 +5,7 @@ export type TiptapNode = JSONContent;
 export interface AuthorInfo {
     authorId: string;
     penName: string;
+    profileImageUrl: string;
 }
 
 // 리스트용 요약본
@@ -14,6 +15,12 @@ export interface ArticleSummary {
     description: string;
     publishedAt: Date;
     author: AuthorInfo;
+}
+
+// 이전, 다음 글 요약본
+export interface PrevAndNextArticleSummary {
+    prevArticleSummary: ArticleSummary;
+    nextArticleSummary: ArticleSummary;
 }
 
 // 상세 페이지용 (content 포함)
@@ -63,6 +70,16 @@ export interface MyArticlesResponse {
     totalPages: number;
     currentPage: number;
     pageSize: number;
+}
+
+// 검색 결과용 타입
+export interface ArticlesResponse {
+    content: ArticleSummary[];
+    totalElements: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    hasMore?: boolean;
 }
 
 export type ArticleStatusFilter = 'DRAFT' | 'PUBLISHED' | 'ALL';

@@ -1,0 +1,1 @@
+export { useEmailAuthSignup } from './lib';

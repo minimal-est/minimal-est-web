@@ -5,7 +5,13 @@ import type { JSONContent } from "@tiptap/core";
 import { completeArticle, createArticle, updateArticle, fetchSingleArticle } from "@/entities/article/api";
 import { articleKeys } from "@/entities/article/lib";
 import { useAuthStore } from "@/entities/user/lib";
-import { VALIDATION_MESSAGES } from "@/shared/constants";
+import {
+    VALIDATION_MESSAGES,
+    ARTICLE_TITLE_MAX_LENGTH,
+    ARTICLE_DESCRIPTION_MAX_LENGTH,
+    ARTICLE_CONTENT_MIN_LENGTH,
+    ARTICLE_CONTENT_MAX_LENGTH,
+} from "@/shared/constants";
 
 interface UseArticleEditorProps {
     articleId?: string;
@@ -36,6 +42,19 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
     // 모달 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState<"save" | "publish">("save");
+
+    /**
+     * 에러 상태 변화를 감시하여 일시적으로 유지 후 자동 초기화
+     * 같은 에러가 반복되어도 toast가 나타나도록 함
+     */
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     /**
      * 새 글 생성 시 리다이렉트 시킵니다.
@@ -83,27 +102,66 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
         loadArticle();
     }, [urlArticleId, penName]);
 
+
+    const getPlainText = (node: JSONContent[]): string => {
+        let pureText = "";
+
+        for (const child of node) {
+            pureText += extractPlainText(child);
+        }
+
+        return pureText;
+    }
+
     /**
-     * 글 유효성 검사
-     * - 제목: 필수 입력 (공백 제외)
-     * - 설명: 필수 입력 (공백 제외)
-     * - 내용: 최소 1개 이상의 노드 필수
-     *
-     * 검사 실패 시 에러 상태에 메시지 저장하고 false 반환
+     * ProseMirror에서 순수 텍스트만 추출하는 함수
      */
+    const extractPlainText = (node: JSONContent) => {
+        let result = "";
+
+        if (node.type === "text" && typeof node.text === "string") {
+            result += node.text;
+        }
+
+        if (Array.isArray(node.content)) {
+            for (const child of node.content) {
+                result += extractPlainText(child);
+            }
+        }
+
+        return result;
+    }
+
     const validateArticle = (): boolean => {
+        const contentText = getPlainText(content);
+
         if (!title.trim()) {
             setError(VALIDATION_MESSAGES.TITLE_REQUIRED);
             return false;
         }
 
-        if (!description.trim()) {
-            setError(VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
+        if (title.length > ARTICLE_TITLE_MAX_LENGTH) {
+            setError(VALIDATION_MESSAGES.TITLE_TOO_LONG);
             return false;
         }
 
-        if (content.length === 0) {
+        if (description.length > ARTICLE_DESCRIPTION_MAX_LENGTH) {
+            setError(VALIDATION_MESSAGES.DESCRIPTION_TOO_LONG);
+            return false;
+        }
+
+        if (contentText.length === 0) {
             setError(VALIDATION_MESSAGES.CONTENT_REQUIRED);
+            return false;
+        }
+
+        if (contentText.length < ARTICLE_CONTENT_MIN_LENGTH) {
+            setError(VALIDATION_MESSAGES.CONTENT_TOO_SHORT);
+            return false;
+        }
+
+        if (contentText.length > ARTICLE_CONTENT_MAX_LENGTH) {
+            setError(VALIDATION_MESSAGES.CONTENT_TOO_LONG);
             return false;
         }
 
@@ -153,7 +211,8 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
 
         try {
             // 글 저장
-            await updateArticle(blogId, currentArticleId, title, content, description);
+            console.log(getPlainText(content));
+            await updateArticle(blogId, currentArticleId, title, content, getPlainText(content), description);
             await queryClient.invalidateQueries({ queryKey: articleKeys.all });
 
             // 성공 처리
@@ -216,7 +275,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
 
         try {
             // 글 저장 후 발행
-            await updateArticle(blogId, currentArticleId, title, content, description);
+            await updateArticle(blogId, currentArticleId, title, content, getPlainText(content), description);
             await completeArticle(blogId, currentArticleId);
             await queryClient.invalidateQueries({ queryKey: articleKeys.all });
 
@@ -246,6 +305,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
         author: {
             authorId: "",
             penName: penName || "",
+            profileImageUrl: "", // 미리보기용 빈 이미지
         },
     };
 

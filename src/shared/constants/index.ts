@@ -7,7 +7,9 @@
 // ==========================================
 
 /** API 기본 URL */
-export const API_BASE_URL = 'http://localhost:8080/api/v1';
+// 개발: http://localhost:8080/api/v1
+// 배포: /api/v1 (같은 도메인)
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 /** API 요청 타임아웃 (밀리초) */
 export const API_REQUEST_TIMEOUT = 10000;
@@ -33,10 +35,21 @@ export const TOKEN_REFRESH_INTERVAL = 1000 * 60 * 60;
 // ==========================================
 
 /** 필명 최소 길이 */
-export const PEN_NAME_MIN_LENGTH = 2;
+export const PEN_NAME_MIN_LENGTH = 3;
 
 /** 필명 최대 길이 */
-export const PEN_NAME_MAX_LENGTH = 50;
+export const PEN_NAME_MAX_LENGTH = 20;
+
+/** 필명 정규식 (한글, 영문, 숫자, 하이픈, 언더스코어 허용) */
+export const PEN_NAME_REGEX = /^[가-힣a-zA-Z0-9_-]+$/;
+
+/** 필명 URL-safe 여부 확인 */
+export const isValidPenName = (penName: string): boolean => {
+    if (penName.length < PEN_NAME_MIN_LENGTH || penName.length > PEN_NAME_MAX_LENGTH) {
+        return false;
+    }
+    return PEN_NAME_REGEX.test(penName);
+};
 
 // ==========================================
 // 회원가입
@@ -72,6 +85,18 @@ export const ARTICLE_STATUS_LABELS: Record<string, string> = {
     DRAFT: '작성 중',
     PUBLISHED: '발행됨',
 };
+
+/** 글 제목 최대 길이 */
+export const ARTICLE_TITLE_MAX_LENGTH = 100;
+
+/** 글 설명 최대 길이 */
+export const ARTICLE_DESCRIPTION_MAX_LENGTH = 200;
+
+/** 글 본문 최소 길이 */
+export const ARTICLE_CONTENT_MIN_LENGTH = 10;
+
+/** 글 본문 최대 길이 */
+export const ARTICLE_CONTENT_MAX_LENGTH = 30000;
 
 // ==========================================
 // UI & UX
@@ -119,8 +144,12 @@ export const VALIDATION_MESSAGES = {
     PASSWORD_TOO_SHORT: `비밀번호는 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`,
     PEN_NAME_TOO_SHORT: `필명은 ${PEN_NAME_MIN_LENGTH}자 이상이어야 합니다.`,
     PEN_NAME_TOO_LONG: `필명은 ${PEN_NAME_MAX_LENGTH}자 이하여야 합니다.`,
+    PEN_NAME_INVALID: '필명은 한글, 영문, 숫자, 하이픈(-), 언더스코어(_)만 사용 가능합니다.',
     TITLE_REQUIRED: '제목을 입력해주세요.',
-    DESCRIPTION_REQUIRED: '설명을 입력해주세요.',
+    TITLE_TOO_LONG: `제목은 ${ARTICLE_TITLE_MAX_LENGTH}자를 초과할 수 없습니다.`,
+    DESCRIPTION_TOO_LONG: `설명은 ${ARTICLE_DESCRIPTION_MAX_LENGTH}자를 초과할 수 없습니다.`,
     CONTENT_REQUIRED: '내용을 입력해주세요.',
+    CONTENT_TOO_SHORT: `내용은 ${ARTICLE_CONTENT_MIN_LENGTH}자 이상이어야 합니다.`,
+    CONTENT_TOO_LONG: `내용은 ${ARTICLE_CONTENT_MAX_LENGTH}자를 초과할 수 없습니다.`,
     PASSWORD_MISMATCH: '비밀번호가 일치하지 않습니다.',
 } as const;

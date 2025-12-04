@@ -1,15 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import type { findSingleArticleParams, ArticleStatusFilter } from "../model/types";
 import { articleKeys } from "./queryKeys";
-import { fetchRecommendArticles, fetchSingleArticle, fetchMyArticles, deleteArticle } from "../api";
+import { fetchRecommendArticles, fetchRecommendArticlesWithPagination, fetchSingleArticle, fetchMyArticles, deleteArticle, fetchPrevAndNextArticle, searchArticles } from "../api";
 
 /**
- * 추천 아티클 목록을 조회하는 hook
+ * 추천 아티클 목록을 조회하는 hook (기존)
  */
 export const useRecommendArticles = () => {
     return useQuery({
         queryKey: articleKeys.recommendations(),
         queryFn: fetchRecommendArticles,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
+};
+
+/**
+ * 추천 아티클 무한스크롤 hook
+ * @param limit - 페이지당 항목 수 (기본값: 15)
+ */
+export const useInfiniteRecommendArticles = (limit: number = 15) => {
+    return useInfiniteQuery({
+        queryKey: articleKeys.recommendationsInfinite(limit),
+        queryFn: ({ pageParam = 0 }) => fetchRecommendArticlesWithPagination(pageParam, limit),
+        getNextPageParam: (lastPage) => {
+            // hasMore가 true이면 다음 페이지 존재
+            if (lastPage.hasMore) {
+                return lastPage.currentPage + 1;
+            }
+            return undefined;
+        },
+        initialPageParam: 0,
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
     });
@@ -29,6 +50,7 @@ export const useSingleArticle = (
         queryFn: () => fetchSingleArticle(params),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
+        retry: 0,
         enabled,
     });
 };
@@ -67,5 +89,36 @@ export const useDeleteArticle = () => {
                 exact: false,
             });
         },
+    });
+};
+
+/**
+ * 이전, 다음 글 조회 hook
+ */
+export const usePrevAndNextArticles = (articleId: string) => {
+    return useQuery({
+        queryKey: articleKeys.prevAndNext(articleId),
+        queryFn: () => fetchPrevAndNextArticle(articleId),
+        staleTime: 1000 * 60 * 30,
+    });
+};
+
+/**
+ * 글 검색 hook
+ * @param query - 검색어
+ * @param page - 페이지 번호
+ * @param size - 페이지당 항목 수
+ */
+export const useSearchArticles = (
+    query: string,
+    page: number = 0,
+    size: number = 15
+) => {
+    return useQuery({
+        queryKey: articleKeys.search(query, page, size),
+        queryFn: () => searchArticles(query, page, size),
+        enabled: !!query,
+        staleTime: 1000 * 60 * 5,
+        retry: 0
     });
 };

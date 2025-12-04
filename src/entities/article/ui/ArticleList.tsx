@@ -1,10 +1,14 @@
-import type {ArticleSummary} from "@/entities/article/model";
-import {ArticleCard} from "@/entities/article/ui/ArticleCard.tsx";
+import type { ArticleSummary } from "@/entities/article/model";
+import { ArticleCard } from "@/entities/article/ui/ArticleCard.tsx";
+import { useArticleReactions } from "@/entities/article-reaction";
 
 interface ArticleListProps {
     articles: ArticleSummary[];
 }
 
+/**
+ * 글 목록 - 각 글의 반응 데이터를 fetching하고 ArticleCard에 전달
+ */
 export const ArticleList = ({ articles }: ArticleListProps) => {
     if (articles.length === 0) {
         return (
@@ -17,8 +21,25 @@ export const ArticleList = ({ articles }: ArticleListProps) => {
     return (
         <div className="flex flex-col gap-4 max-w-2xl">
             {articles.map((article) => (
-                <ArticleCard key={article.articleId} article={article} />
+                <ArticleCardWithReactions key={article.articleId} article={article} />
             ))}
         </div>
+    );
+};
+
+/**
+ * ArticleCard + 반응 데이터 로딩을 조합한 컴포넌트
+ */
+const ArticleCardWithReactions = ({ article }: { article: ArticleSummary }) => {
+    const { stats, myReactions, isLoading, error } = useArticleReactions(article.articleId);
+
+    return (
+        <ArticleCard
+            article={article}
+            reactionStats={stats}
+            myReactions={myReactions}
+            isReactionLoading={isLoading}
+            reactionError={error}
+        />
     );
 };

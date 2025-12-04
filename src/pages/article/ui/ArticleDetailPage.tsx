@@ -263,15 +263,17 @@ export const ArticleDetailPage = () => {
             />
 
             {/* Bookmark Add Modal */}
-            <BookmarkAddModal
-                isOpen={bookmarkAdding.isOpen}
-                isLoading={bookmarkAdding.isLoading}
-                articleId={articleId}
-                onClose={() => bookmarkAdding.setIsOpen(false)}
-                onAdd={async (articleIdParam, collectionIdParam) => {
-                    await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
-                }}
-            />
+            {isSignedIn &&
+                <BookmarkAddModal
+                    isOpen={bookmarkAdding.isOpen}
+                    isLoading={bookmarkAdding.isLoading}
+                    articleId={articleId}
+                    onClose={() => bookmarkAdding.setIsOpen(false)}
+                    onAdd={async (articleIdParam, collectionIdParam) => {
+                        await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
+                    }}
+                />
+            }
         </div>
     );
 };

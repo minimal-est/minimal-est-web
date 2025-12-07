@@ -33,7 +33,7 @@ export const ArticleCard = ({
 
     return (
         <Link
-            to={`/articles/${article.author.penName}/${article.articleId}`}
+            to={`/articles/${article.author.penName}/${article.slug}`}
             className="block transition-all duration-200 hover:no-underline"
         >
             <article className="flex flex-col gap-4 bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700 transition-all duration-200 hover:translate-y-[-2px]">
@@ -58,13 +58,14 @@ export const ArticleCard = ({
 
                 {/* Content */}
                 <div className="flex flex-col gap-3">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight">
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight">
                         {article.title}
                     </h2>
-                    <p className="text-sm leading-6 text-gray-600 dark:text-gray-300 line-clamp-2">
+                    <p className="text-xs sm:text-sm leading-6 text-gray-600 dark:text-gray-300 line-clamp-2">
                         {article.description}
                     </p>
                 </div>
+
                 <div className="pt-1">
                     <ReactionStatsDisplay
                         articleId={article.articleId}

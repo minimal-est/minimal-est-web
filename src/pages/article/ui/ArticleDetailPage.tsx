@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { useSingleArticle } from "@/entities/article/lib";
+import { useSingleArticleBySlug } from "@/entities/article/lib";
 import { TiptapRenderer } from "@/shared/ui/TiptapRenderer";
 import { Edit2, Share2 } from "lucide-react";
 import { useAuth } from "@/entities/user/lib";
@@ -14,13 +14,14 @@ import { useBookmarkAdding, BookmarkAddFloatingButton, BookmarkAddModal } from "
 import { ArticleNavigationWidget } from "@/widgets/article-navigation/ui";
 
 export const ArticleDetailPage = () => {
-    const { penName, articleId } = useParams<{ penName: string; articleId: string }>();
+    const { penName, slug } = useParams<{ penName: string; slug: string }>();
     const navigate = useNavigate();
     const { penName: myPenName } = useAuth();
 
-    const { data: article, isLoading, error } = useSingleArticle(
-        { penName: penName || "", articleId: articleId || "" },
-        !!(penName && articleId)
+    const { data: article, isLoading, error } = useSingleArticleBySlug(
+        penName || "",
+        slug || "",
+        !!(penName && slug)
     );
 
     const { isSignedIn } = useAuth();
@@ -57,7 +58,7 @@ export const ArticleDetailPage = () => {
         };
 
         const baseUrl = window.location.origin;
-        const articleUrl = `${baseUrl}/articles/${penName}/${articleId}`;
+        const articleUrl = `${baseUrl}/articles/${penName}/${slug}`;
 
         updateOG('og:title', article.title);
         updateOG('og:description', description);
@@ -69,7 +70,7 @@ export const ArticleDetailPage = () => {
         return () => {
             // 클린업
         };
-    }, [article, penName, articleId]);
+    }, [article, penName, slug]);
 
     const bookmarkAdding = useBookmarkAdding({
         collectionId: '',
@@ -118,21 +119,21 @@ export const ArticleDetailPage = () => {
 
 
     const handleEditMode = () => {
-        if (!articleId) {
+        if (!article?.articleId) {
             toast.error("글 ID를 찾을 수 없습니다.");
             return;
         }
-        navigate(`/write/${articleId}`, { state: { authorPenName: article?.author.penName } });
+        navigate(`/write/${article.articleId}`, { state: { authorPenName: article?.author.penName } });
     };
 
     const handleShare = () => {
-        if (!penName || !articleId) {
+        if (!penName || !slug) {
             toast.error("링크 복사에 실패했습니다.");
             return;
         }
 
         const baseUrl = window.location.origin;
-        const articleUrl = `${baseUrl}/articles/${penName}/${articleId}`;
+        const articleUrl = `${baseUrl}/articles/${penName}/${slug}`;
 
         navigator.clipboard.writeText(articleUrl).then(() => {
             toast.success('링크가 복사되었습니다');
@@ -143,137 +144,155 @@ export const ArticleDetailPage = () => {
 
 
     return (
-        <div className="w-full min-h-screen bg-white dark:bg-gray-900">
-            {/* Header */}
-            <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <div className="max-w-3xl mx-auto px-4 py-8">
-                    {/* Back Button */}
-                    <button
-                        onClick={() => navigate("/")}
-                        className="text-violet-600 dark:text-violet-400 hover:underline mb-6 font-medium"
-                    >
-                        ← 목록으로
-                    </button>
+        <div className="w-full bg-white dark:bg-gray-900">
+            <div className="max-w-prose mx-auto">
+                {/* Header */}
+                <header className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="mx-auto py-8">
+                        {/* Back Button */}
+                        <button
+                            onClick={() => navigate("/")}
+                            className="text-violet-600 dark:text-violet-400 hover:underline mb-6 font-medium"
+                        >
+                            ← 목록으로
+                        </button>
 
-                    {/* Title */}
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                        {article.title}
-                    </h1>
-                    <h2 className="text-2xl">
-                        {article.description}
-                    </h2>
+                        {/* Title */}
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                            {article.title}
+                        </h1>
+                        <h2 className="text-2xl">
+                            {article.description}
+                        </h2>
 
-                    <div>
-                        <ReactionStatsSection
-                            showCompact={true}
-                            articleId={article.articleId}
-                        />
-                    </div>
-
-                    {/* Author Info */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="">
-                                <ProfileAvatar
-                                    penName={article.author.penName}
-                                    profileImageUrl={article.author.profileImageUrl}
-                                    size="sm"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                        {article.author.penName}
-                                    </p>
-                                    {article.status === 'DRAFT' && (
-                                        <span className="inline-block px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded-full">
-                                            발행되지 않음
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
-                                    <p>발행일 ・ {formatDateTime(article.publishedAt)}</p>
-                                    {article.updatedAt > article.publishedAt && (
-                                        <p className="text-xs">마지막 수정일 ・ {formatDateTime(article.updatedAt)}</p>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="pt-4">
+                            <ReactionStatsSection
+                                showCompact={true}
+                                articleId={article.articleId}
+                            />
                         </div>
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
-                            {/* Share Button */}
-                            <button
-                                onClick={handleShare}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                title="링크 복사"
-                            >
-                                <Share2 size={18} />
-                                <span className="text-sm font-medium">공유</span>
-                            </button>
 
-                            {/* Edit Button - 자신의 글일 때만 표시 */}
-                            {myPenName === article.author.penName && (
+                        {/* Author Info */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="">
+                                    <ProfileAvatar
+                                        penName={article.author.penName}
+                                        profileImageUrl={article.author.profileImageUrl}
+                                        size="sm"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            {article.author.penName}
+                                        </p>
+                                        {article.status === 'DRAFT' && (
+                                            <span className="inline-block px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded-full">
+                                                발행되지 않음
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
+                                        <p>발행일 ・ {formatDateTime(article.publishedAt)}</p>
+                                        {article.updatedAt > article.publishedAt && (
+                                            <p className="text-xs">마지막 수정일 ・ {formatDateTime(article.updatedAt)}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2">
+                                {/* Share Button */}
                                 <button
-                                    onClick={handleEditMode}
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                    title="글 수정"
+                                    onClick={handleShare}
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                    title="링크 복사"
                                 >
-                                    <Edit2 size={18} />
-                                    <span className="text-sm font-medium">수정</span>
+                                    <Share2 size={18} />
+                                    <span className="text-sm font-medium">공유</span>
                                 </button>
-                            )}
+
+                                {/* Edit Button - 자신의 글일 때만 표시 */}
+                                {myPenName === article.author.penName && (
+                                    <button
+                                        onClick={handleEditMode}
+                                        className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                        title="글 수정"
+                                    >
+                                        <Edit2 size={18} />
+                                        <span className="text-sm font-medium">수정</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
-            {/* Content */}
-            <article className="max-w-3xl mx-auto px-4 py-12">
-                <div className="prose dark:prose-invert max-w-none">
-                    <TiptapRenderer nodes={article.content} />
-                </div>
-            </article>
+                {/* Content */}
+                <article className="max-w-prose mx-auto py-12">
+                    <div className="prose dark:prose-invert">
+                        <TiptapRenderer nodes={article.content} />
+                    </div>
 
-            {/* Prev And Next Navigator */}
-            <ArticleNavigationWidget
-                articleId={article.articleId}
-            />
+                    {/* Tags */}
+                    {Array.isArray(article.tags) && article.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-8">
+                            {article.tags.map((tag: string, index: number) => (
+                                <span
+                                    key={`${tag}-${index}`}
+                                    className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </article>
 
-            {/* Reactions Footer */}
-            <footer className="flex justify-center">
-                <div className="max-w-3xl px-4 py-8 w-full">
-                    <ReactionStatsSection
+                {/* Prev And Next Navigator */}
+                <div>
+                    <ArticleNavigationWidget
                         articleId={article.articleId}
-                        showCompact={false}
                     />
                 </div>
-            </footer>
 
-            {/* Comments Section */}
-            <section className="bg-gray-50 dark:bg-gray-800 py-12">
-                <div className="max-w-3xl mx-auto px-4">
-                    <ArticleCommentsWidget articleId={article.articleId} />
-                </div>
-            </section>
+                {/* Reactions Footer */}
+                <footer className="flex justify-center">
+                    <div className="py-5">
+                        <ReactionStatsSection
+                            articleId={article.articleId}
+                            showCompact={false}
+                        />
+                    </div>
+                </footer>
 
-            {/* Floating Bookmark Button */}
-            <BookmarkAddFloatingButton
-                isLoading={bookmarkAdding.isLoading}
-                onClick={handleBookmarkClick}
-            />
+                {/* Comments Section */}
+                <section className="bg-gray-50 dark:bg-gray-800 py-12">
+                    <div className="mx-auto px-4">
+                        <ArticleCommentsWidget articleId={article.articleId} />
+                    </div>
+                </section>
 
-            {/* Bookmark Add Modal */}
-            {isSignedIn &&
-                <BookmarkAddModal
-                    isOpen={bookmarkAdding.isOpen}
+                {/* Floating Bookmark Button */}
+                <BookmarkAddFloatingButton
                     isLoading={bookmarkAdding.isLoading}
-                    articleId={articleId}
-                    onClose={() => bookmarkAdding.setIsOpen(false)}
-                    onAdd={async (articleIdParam, collectionIdParam) => {
-                        await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
-                    }}
+                    onClick={handleBookmarkClick}
                 />
-            }
+
+                {/* Bookmark Add Modal */}
+                {isSignedIn &&
+                    <BookmarkAddModal
+                        isOpen={bookmarkAdding.isOpen}
+                        isLoading={bookmarkAdding.isLoading}
+                        articleId={article?.articleId || ""}
+                        onClose={() => bookmarkAdding.setIsOpen(false)}
+                        onAdd={async (articleIdParam, collectionIdParam) => {
+                            await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
+                        }}
+                    />
+                }
+            </div>
         </div>
     );
 };

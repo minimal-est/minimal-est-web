@@ -98,6 +98,15 @@ export const ARTICLE_CONTENT_MIN_LENGTH = 10;
 /** 글 본문 최대 길이 */
 export const ARTICLE_CONTENT_MAX_LENGTH = 30000;
 
+/** 태그 최소 길이 */
+export const TAG_MIN_LENGTH = 2;
+
+/** 태그 최대 길이 */
+export const TAG_MAX_LENGTH = 50;
+
+/** 태그 정규식 (영문, 숫자, 한글만 허용) */
+export const TAG_REGEX = /^[a-zA-Z0-9가-힣]+$/;
+
 // ==========================================
 // UI & UX
 // ==========================================
@@ -152,4 +161,7 @@ export const VALIDATION_MESSAGES = {
     CONTENT_TOO_SHORT: `내용은 ${ARTICLE_CONTENT_MIN_LENGTH}자 이상이어야 합니다.`,
     CONTENT_TOO_LONG: `내용은 ${ARTICLE_CONTENT_MAX_LENGTH}자를 초과할 수 없습니다.`,
     PASSWORD_MISMATCH: '비밀번호가 일치하지 않습니다.',
+    TAG_TOO_SHORT: `태그는 ${TAG_MIN_LENGTH}자 이상이어야 합니다.`,
+    TAG_TOO_LONG: `태그는 ${TAG_MAX_LENGTH}자 이하여야 합니다.`,
+    TAG_INVALID_FORMAT: '태그는 영문, 숫자, 한글만 사용 가능합니다.',
 } as const;

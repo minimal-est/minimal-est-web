@@ -7,6 +7,7 @@ import { toast } from "sonner";
 interface ReactionStatsSectionProps {
     articleId: string;
     showCompact?: boolean;
+    initialStats?: any; // 초기 stats (API 응답에서 받은 데이터)
 }
 
 /**
@@ -18,12 +19,13 @@ interface ReactionStatsSectionProps {
 export const ReactionStatsSection = ({
     articleId,
     showCompact = false,
+    initialStats,
 }: ReactionStatsSectionProps) => {
     const navigate = useNavigate();
     const { accessToken } = useAuth();
 
-    // Entity hook에서 모든 상태 관리
-    const { stats, myReactions, isLoading: reactionIsLoading, error, refetch } = useArticleReactions(articleId);
+    // Entity hook에서 모든 상태 관리 (initialStats가 있으면 API 호출 스킵)
+    const { stats, myReactions, isLoading: reactionIsLoading, error, refetch } = useArticleReactions(articleId, initialStats);
 
     const { isLoading, toggleReaction } = useToggleReaction(
         articleId,

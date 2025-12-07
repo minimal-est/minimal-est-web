@@ -23,6 +23,16 @@ export const ArticleListTable = ({
 }: ArticleListTableProps) => {
     const navigate = useNavigate();
 
+    const handleTitleClick = (article: MyArticleSummary) => {
+        if (article.status === ARTICLE_STATUS_DRAFT) {
+            // DRAFT: 편집 페이지로
+            navigate(`/write/${article.articleId}`);
+        } else {
+            // PUBLISHED: 상세 페이지로 (slug 사용)
+            navigate(`/articles/${article.author.penName}/${article.slug}`);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center py-12">
@@ -67,8 +77,8 @@ export const ArticleListTable = ({
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                             <button
-                                onClick={() => navigate(`/articles/${article.author.penName}/${article.articleId}`)}
-                                className="text-sm font-medium text-gray-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 truncate block"
+                                onClick={() => handleTitleClick(article)}
+                                className="text-sm font-medium text-gray-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 line-clamp-2 text-left block w-full"
                             >
                                 {article.title || "(제목 없음)"}
                             </button>
@@ -84,8 +94,8 @@ export const ArticleListTable = ({
                                 </span>
                                 <span>
                                     {article.status === ARTICLE_STATUS_DRAFT
-                                        ? `수정: ${article.updatedAt.toLocaleDateString("ko-KR")}`
-                                        : `발행: ${article.publishedAt.toLocaleDateString("ko-KR")}`}
+                                        ? `수정: ${article.updatedAt.toLocaleString("ko-KR")}`
+                                        : `발행: ${article.publishedAt.toLocaleString("ko-KR")}`}
                                 </span>
                             </div>
                         </div>

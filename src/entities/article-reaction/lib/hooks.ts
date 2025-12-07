@@ -3,7 +3,7 @@ import { getArticleReactionStats, getMyReactions } from "../api";
 import { reactionKeys } from "./queryKeys";
 import { useAuth } from "@/entities/user/lib";
 
-export const useArticleReactions = (articleId: string) => {
+export const useArticleReactions = (articleId: string, initialStats?: any) => {
     const queryClient = useQueryClient();
     const { isSignedIn } = useAuth();
 
@@ -11,6 +11,8 @@ export const useArticleReactions = (articleId: string) => {
         queryKey: reactionKeys.statsForArticle(articleId),
         queryFn: () => getArticleReactionStats(articleId),
         staleTime: 1000 * 60 * 5, // 5분
+        enabled: !initialStats, // initialStats가 있으면 API 호출 스킵
+        initialData: initialStats?.stats, // 초기값 설정
     });
 
     // 로그인한 사용자만 자신의 리액션 정보를 조회

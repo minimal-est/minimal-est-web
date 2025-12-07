@@ -11,7 +11,7 @@ export const MainLayout = () => {
             <MainHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
             <div className="flex flex-1">
                 <MainSidebar isOpen={isSidebarOpen} />
-                <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
+                <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-56' : 'lg:ml-0'}`}>
                     <Outlet />
                 </main>
             </div>

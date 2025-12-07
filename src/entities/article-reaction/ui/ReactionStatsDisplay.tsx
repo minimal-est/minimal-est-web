@@ -5,7 +5,7 @@ import { Skeleton } from "@/shared/ui/base";
 interface ReactionStatsDisplayProps {
     articleId: string;
     stats: ArticleReactionStats | null;
-    myReactions: MyReactionResponse | null;
+    myReactions?: MyReactionResponse | null;
     isLoading: boolean;
     error: string | null;
     onReactionClick?: (reactionType: string) => void;

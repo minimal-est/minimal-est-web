@@ -1,2 +1,2 @@
-export { useRecommendArticles, useInfiniteRecommendArticles, useSingleArticle, useMyArticles, useDeleteArticle, usePrevAndNextArticles, useSearchArticles } from './hooks';
+export { useRecommendArticles, useInfiniteRecommendArticles, useSingleArticle, useSingleArticleBySlug, useMyArticles, useDeleteArticle, usePrevAndNextArticles, useSearchArticles } from './hooks';
 export { articleKeys } from "./queryKeys";

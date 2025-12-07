@@ -8,9 +8,7 @@ export default defineConfig({
     plugins: [
         react(), 
         tailwindcss(),
-        removeConsole({
-            
-        })
+        removeConsole()
     ],
     resolve: {
         alias: {

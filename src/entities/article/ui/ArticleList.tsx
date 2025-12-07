@@ -1,6 +1,5 @@
 import type { ArticleSummary } from "@/entities/article/model";
 import { ArticleCard } from "@/entities/article/ui/ArticleCard.tsx";
-import { useArticleReactions } from "@/entities/article-reaction";
 
 interface ArticleListProps {
     articles: ArticleSummary[];
@@ -31,15 +30,10 @@ export const ArticleList = ({ articles }: ArticleListProps) => {
  * ArticleCard + 반응 데이터 로딩을 조합한 컴포넌트
  */
 const ArticleCardWithReactions = ({ article }: { article: ArticleSummary }) => {
-    const { stats, myReactions, isLoading, error } = useArticleReactions(article.articleId);
-
     return (
         <ArticleCard
             article={article}
-            reactionStats={stats}
-            myReactions={myReactions}
-            isReactionLoading={isLoading}
-            reactionError={error}
+            reactionStats={article.reactionStats}
         />
     );
 };

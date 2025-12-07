@@ -1,4 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
+import type { ArticleReactionStats } from '../../article-reaction/model/types';
 
 export type TiptapNode = JSONContent;
 
@@ -11,10 +12,13 @@ export interface AuthorInfo {
 // 리스트용 요약본
 export interface ArticleSummary {
     articleId: string;
+    slug: string;
     title: string;
     description: string;
     publishedAt: Date;
     author: AuthorInfo;
+    reactionStats?: ArticleReactionStats;
+    tags?: string[];
 }
 
 // 이전, 다음 글 요약본
@@ -47,6 +51,7 @@ export interface ArticleSummaryResponse extends Omit<ArticleSummary, 'publishedA
 // 상세 API 응답용 타입 (content는 JSON string)
 export interface ArticleDetailResponse {
     articleId: string;
+    slug: string;
     title: string;
     description: string;
     content: string; // JSON string으로 받음
@@ -55,6 +60,7 @@ export interface ArticleDetailResponse {
     createdAt: string;
     updatedAt: string;
     author: AuthorInfo;
+    tags?: Array<{ id: string | null; name: string }>;
 }
 
 // 내 글 관리용 타입
@@ -83,3 +89,13 @@ export interface ArticlesResponse {
 }
 
 export type ArticleStatusFilter = 'DRAFT' | 'PUBLISHED' | 'ALL';
+
+export interface UpdateArticleRequest {
+    blogId: string;
+    articleId: string;
+    title: string;
+    content: JSONContent[];
+    pureContent: string;
+    description: string;
+    tags: string[];
+}

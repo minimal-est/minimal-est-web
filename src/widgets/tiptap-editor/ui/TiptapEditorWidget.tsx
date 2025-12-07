@@ -70,7 +70,7 @@ export const TiptapEditorWidget = ({ value, onChange }: TiptapEditorWidgetProps)
     return (
         <div>
             <MenuBar editor={editor} />
-            <div className="w-full prose dark:prose-invert">
+            <div className="mx-auto prose dark:prose-invert min-h-[150px]">
                 <EditorContent
                     editor={editor}
                     className="outline-none focus:outline-none [&>div]:outline-none [&>div]:focus:outline-none"

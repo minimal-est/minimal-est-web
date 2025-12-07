@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ChevronLeft, Save, Send, Check } from "lucide-react";
+import { Save, Send, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { TiptapEditorWidget } from "@/widgets/tiptap-editor/ui";
 import { useArticleEditor } from "../model/useArticleEditor";
@@ -19,12 +19,17 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
         setDescription,
         content,
         setContent,
+        tags,
+        tagInput,
+        setTagInput,
         isLoading,
         isInitialLoading,
         error,
         success,
         handleSave,
         handlePublish,
+        handleAddTag,
+        handleRemoveTag,
         blogId,
         articleId: currentArticleId,
         isEditMode: editorIsEditMode,
@@ -75,28 +80,17 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
     }
 
     if (!currentArticleId) {
-        return <div className="p-8 text-center">글 생성에 실패했습니다.</div>;
+        return <div className="flex items-center justify-center w-full h-screen"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white" /></div>
     }
 
     return (
-        <>
+        <div className="max-w-prose mx-auto">
             {/* 헤더 */}
-            <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <button
-                            onClick={() => window.location.href = "/"}
-                            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
-                        >
-                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="font-medium">돌아가기</span>
-                        </button>
-                    </div>
-                </div>
+            <header className="backdrop-blur-sm bg-opacity-95">
             </header>
 
             {/* 메인(편집) */}
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
+            <main className="mx-auto my-12">
                 <form id="article-form" className="space-y-8" onSubmit={(e) => e.preventDefault()}>
                     {/* Title Input */}
                     <div className="space-y-3">
@@ -111,7 +105,7 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                             }}
                             placeholder="글의 제목을 입력하세요..."
                             rows={1}
-                            className="w-full text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none resize-none overflow-hidden"
+                            className="w-full text-2xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none resize-none overflow-hidden"
                             onInput={(e) => {
                                 const target = e.currentTarget;
                                 target.style.height = 'auto';
@@ -154,11 +148,61 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                     </div>
 
                     {/* Divider */}
-                    <div className="h-px bg-gradient-to-r from-gray-200 via-gray-300 to-transparent dark:from-gray-700 dark:via-gray-600 dark:to-transparent" />
+                    <hr />
 
                     {/* Content Editor */}
                     <div>
                         <TiptapEditorWidget value={content} onChange={setContent} />
+                    </div>
+
+                    {/* Tags Input */}
+                    <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            태그 (선택 사항)
+                        </label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="태그를 입력하고 Enter를 누르세요"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddTag();
+                                    }
+                                }}
+                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddTag}
+                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-none hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+                            >
+                                추가
+                            </button>
+                        </div>
+
+                        {/* Tags List */}
+                        {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {tags.map((tag, index) => (
+                                    <div
+                                        key={index}
+                                        className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-none border border-gray-300 dark:border-gray-600"
+                                    >
+                                        <span className="text-sm">{tag}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTag(index)}
+                                            className="hover:text-red-500 transition-colors p-0.5"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </form>
             </main>
@@ -212,6 +256,6 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                 onCancel={() => setIsModalOpen(false)}
                 isLoading={isLoading}
             />
-        </>
+        </div>
     );
 };

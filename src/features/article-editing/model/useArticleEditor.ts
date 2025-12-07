@@ -11,7 +11,11 @@ import {
     ARTICLE_DESCRIPTION_MAX_LENGTH,
     ARTICLE_CONTENT_MIN_LENGTH,
     ARTICLE_CONTENT_MAX_LENGTH,
+    TAG_MIN_LENGTH,
+    TAG_MAX_LENGTH,
+    TAG_REGEX,
 } from "@/shared/constants";
+import { toast } from "sonner";
 
 interface UseArticleEditorProps {
     articleId?: string;
@@ -25,6 +29,8 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [content, setContent] = useState<JSONContent[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialLoading, setIsInitialLoading] = useState(!!urlArticleId);
     const [error, setError] = useState<string | null>(null);
@@ -90,6 +96,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
                 setTitle(article.title);
                 setDescription(article.description);
                 setContent(article.content);
+                setTags(article.tags || []);
                 setArticleStatus(article.status);
             } catch (err) {
                 setError("글을 불러올 수 없습니다.");
@@ -165,9 +172,59 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
             return false;
         }
 
+        // 태그 검증 (배열이 비어있으면 검증 통과)
+        for (const tag of tags) {
+            if (tag.length < TAG_MIN_LENGTH) {
+                setError(VALIDATION_MESSAGES.TAG_TOO_SHORT);
+                return false;
+            }
+
+            if (tag.length > TAG_MAX_LENGTH) {
+                setError(VALIDATION_MESSAGES.TAG_TOO_LONG);
+                return false;
+            }
+
+            if (!TAG_REGEX.test(tag)) {
+                setError(VALIDATION_MESSAGES.TAG_INVALID_FORMAT);
+                return false;
+            }
+        }
+
         // 검사 통과 시 에러 초기화
         setError(null);
         return true;
+    };
+
+    const handleAddTag = () => {
+        const trimmed = tagInput.trim();
+        if (!trimmed) return;
+
+        if (trimmed.length < TAG_MIN_LENGTH) {
+            toast.error(`태그는 ${TAG_MIN_LENGTH}자 이상이어야 합니다.`);
+            return;
+        }
+
+        if (trimmed.length > TAG_MAX_LENGTH) {
+            toast.error(`태그는 ${TAG_MAX_LENGTH}자 이하여야 합니다.`);
+            return;
+        }
+
+        if (!TAG_REGEX.test(trimmed)) {
+            toast.error('태그는 영문, 숫자, 한글만 사용 가능합니다.');
+            return;
+        }
+
+        if (tags.includes(trimmed)) {
+            toast.error('이미 추가된 태그입니다.');
+            return;
+        }
+
+        setTags([...tags, trimmed]);
+        setTagInput("");
+    };
+
+    const handleRemoveTag = (index: number) => {
+        setTags(tags.filter((_, i) => i !== index));
     };
 
     /**
@@ -212,7 +269,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
         try {
             // 글 저장
             console.log(getPlainText(content));
-            await updateArticle(blogId, currentArticleId, title, content, getPlainText(content), description);
+            await updateArticle({ blogId, articleId: currentArticleId, title, content, pureContent: getPlainText(content), description, tags });
             await queryClient.invalidateQueries({ queryKey: articleKeys.all });
 
             // 성공 처리
@@ -275,7 +332,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
 
         try {
             // 글 저장 후 발행
-            await updateArticle(blogId, currentArticleId, title, content, getPlainText(content), description);
+            await updateArticle({ blogId, articleId: currentArticleId, title, content, pureContent: getPlainText(content), description, tags });
             await completeArticle(blogId, currentArticleId);
             await queryClient.invalidateQueries({ queryKey: articleKeys.all });
 
@@ -299,6 +356,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
      */
     const previewArticle = {
         articleId: articleIdState || urlArticleId || "",
+        slug: "",
         title,
         description,
         publishedAt: new Date(),
@@ -317,6 +375,10 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
         setDescription,
         content,
         setContent,
+        tags,
+        setTags,
+        tagInput,
+        setTagInput,
 
         // 로딩 상태
         isLoading,
@@ -329,6 +391,8 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
         // 버튼 핸들러
         handleSave,
         handlePublish,
+        handleAddTag,
+        handleRemoveTag,
 
         // 모달 상태
         isModalOpen,

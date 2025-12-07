@@ -1,5 +1,16 @@
 import { client } from "@/shared/api";
-import type { ArticleDetail, ArticleSummary, ArticleSummaryResponse, ArticleDetailResponse, findSingleArticleParams, MyArticlesResponse, ArticlesResponse, ArticleStatusFilter, PrevAndNextArticleSummary } from "../model/types";
+import type {
+    ArticleDetail,
+    ArticleSummary,
+    ArticleSummaryResponse,
+    ArticleDetailResponse,
+    findSingleArticleParams,
+    MyArticlesResponse,
+    ArticlesResponse,
+    ArticleStatusFilter,
+    PrevAndNextArticleSummary,
+    UpdateArticleRequest
+} from "../model/types";
 import type { JSONContent } from "@tiptap/core";
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from "@/shared/constants";
 
@@ -9,12 +20,15 @@ import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from "@/shared/constants";
  */
 export const fetchRecommendArticles = async (): Promise<ArticleSummary[]> => {
     const response = await client.get<{ articleSummaries: ArticleSummaryResponse[] }>("/articles/recommend");
-    return response.data.articleSummaries.map(article => ({
+    return response.data.articleSummaries.map((article: any) => ({
         articleId: article.articleId,
+        slug: article.slug,
         title: article.title,
         description: article.description,
         publishedAt: new Date(article.publishedAt),
         author: article.author,
+        reactionStats: article.reactionStats,
+        tags: Array.isArray(article.tags) ? article.tags.map((t: any) => t.name) : [],
     }));
 };
 
@@ -40,10 +54,13 @@ export const fetchRecommendArticlesWithPagination = async (
     return {
         content: articles.map((article: any) => ({
             articleId: article.articleId,
+            slug: article.slug,
             title: article.title,
             description: article.description,
             publishedAt: new Date(article.publishedAt),
             author: article.author,
+            reactionStats: article.reactionStats,
+            tags: Array.isArray(article.tags) ? article.tags.map((t: any) => t.name) : [],
         })),
         totalElements: 0,
         totalPages: 0,
@@ -51,6 +68,69 @@ export const fetchRecommendArticlesWithPagination = async (
         pageSize: limit,
         // 받은 글이 limit보다 적으면 마지막 페이지
         hasMore: articles.length >= limit,
+    };
+};
+
+/**
+ * Slug로 단일 아티클 조회 (상세 페이지)
+ *
+ * @param penName - 작가 필명
+ * @param slug - 글의 slug
+ * @returns 글 상세 정보 (콘텐츠 포함)
+ * @throws {ErrorResponse} API 에러 (404: 글 없음 등)
+ */
+export const fetchArticleBySlug = async (
+    penName: string,
+    slug: string
+): Promise<ArticleDetail> => {
+    const response = await client.get<ArticleDetailResponse>(
+        `/blogs/${penName}/articles/by-slug/${slug}/details`
+    );
+
+    /**
+     * API에서 받은 콘텐츠는 JSON 문자열로 직렬화되어 있음
+     * 두 가지 형식으로 저장될 수 있음:
+     *
+     * 형식 1 - Tiptap 기본 구조 (단일 루트 노드):
+     *   { type: 'doc', content: [...] }
+     *
+     * 형식 2 - 직렬화된 배열 (호환성):
+     *   [...]
+     *
+     *
+     * 이 함수는 두 형식을 모두 처리하고 표준화된 JSONContent[] 배열로 반환
+     */
+    let parsedContent: JSONContent[] = [];
+
+    try {
+        const content = JSON.parse(response.data.content);
+
+        if (content?.type === 'doc' && Array.isArray(content.content)) {
+            // 형식 1: Tiptap doc 구조에서 내용 배열 추출
+            parsedContent = content.content;
+        } else if (Array.isArray(content)) {
+            // 형식 2: 이미 배열 형식
+            parsedContent = content;
+        }
+    } catch (_parseError) {
+        // JSON 파싱 실패 시 빈 배열로 처리
+        // (향후 에러 로깅 추가 권장)
+        console.log(_parseError);
+        parsedContent = [];
+    }
+
+    return {
+        articleId: response.data.articleId,
+        slug: response.data.slug || "",
+        title: response.data.title,
+        description: response.data.description,
+        content: parsedContent,
+        status: response.data.status,
+        publishedAt: new Date(response.data.publishedAt),
+        createdAt: new Date(response.data.createdAt),
+        updatedAt: new Date(response.data.updatedAt),
+        author: response.data.author,
+        tags: Array.isArray(response.data.tags) ? response.data.tags.map((t: any) => t.name) : [],
     };
 };
 
@@ -79,6 +159,7 @@ export const fetchSingleArticle = async (
      * 형식 2 - 직렬화된 배열 (호환성):
      *   [...]
      *
+     *
      * 이 함수는 두 형식을 모두 처리하고 표준화된 JSONContent[] 배열로 반환
      */
     let parsedContent: JSONContent[] = [];
@@ -96,11 +177,13 @@ export const fetchSingleArticle = async (
     } catch (_parseError) {
         // JSON 파싱 실패 시 빈 배열로 처리
         // (향후 에러 로깅 추가 권장)
+        console.log(_parseError);
         parsedContent = [];
     }
 
     return {
         articleId: response.data.articleId,
+        slug: response.data.slug || "",
         title: response.data.title,
         description: response.data.description,
         content: parsedContent,
@@ -109,6 +192,7 @@ export const fetchSingleArticle = async (
         createdAt: new Date(response.data.createdAt),
         updatedAt: new Date(response.data.updatedAt),
         author: response.data.author,
+        tags: Array.isArray(response.data.tags) ? response.data.tags.map((t: any) => t.name) : [],
     };
 };
 
@@ -142,14 +226,15 @@ export const createArticle = async (blogId: string): Promise<{ articleId: string
  * @param content - 내용
  * @throws {ErrorResponse} API 에러
  */
-export const updateArticle = async (
-    blogId: string,
-    articleId: string,
-    title: string,
-    content: JSONContent[],
-    pureContent: string,
-    description: string,
-): Promise<{ articleId: string; }> => {
+export const updateArticle = async ({
+        blogId,
+        articleId,
+        title,
+        content,
+        pureContent,
+        description,
+        tags
+    }: UpdateArticleRequest): Promise<{ articleId: string; }> => {
     const response = await client.put<{ articleId: string; title: string; description: string; }>(
         `/blogs/${blogId}/articles/${articleId}`,
         {
@@ -157,6 +242,7 @@ export const updateArticle = async (
             content: JSON.stringify(content),
             pureContent,
             description,
+            tags
         }
     );
     return response.data;
@@ -227,6 +313,7 @@ export const fetchMyArticles = async (
     return {
         content: articlesData.content.map((article: any) => ({
             articleId: article.articleId,
+            slug: article.slug || "",
             title: article.title,
             description: article.description,
             publishedAt: article.publishedAt ? new Date(article.publishedAt) : new Date(article.createdAt),
@@ -234,6 +321,7 @@ export const fetchMyArticles = async (
             createdAt: new Date(article.createdAt),
             updatedAt: new Date(article.updatedAt),
             author: article.author,
+            tags: Array.isArray(article.tags) ? article.tags.map((t: any) => t.name) : [],
         })),
         totalElements: pageInfo.totalElements || 0,
         totalPages: pageInfo.totalPages || 0,
@@ -283,10 +371,12 @@ export const searchArticles = async (
     return {
         content: articlesData.content.map((article: any) => ({
             articleId: article.articleId,
+            slug: article.slug || "",
             title: article.title,
             description: article.description,
             publishedAt: new Date(article.publishedAt),
             author: article.author,
+            tags: Array.isArray(article.tags) ? article.tags.map((t: any) => t.name) : [],
         })),
         totalElements: pageInfo.totalElements,
         totalPages: pageInfo.totalPages,

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import type { findSingleArticleParams, ArticleStatusFilter } from "../model/types";
 import { articleKeys } from "./queryKeys";
-import { fetchRecommendArticles, fetchRecommendArticlesWithPagination, fetchSingleArticle, fetchMyArticles, deleteArticle, fetchPrevAndNextArticle, searchArticles } from "../api";
+import { fetchRecommendArticles, fetchRecommendArticlesWithPagination, fetchSingleArticle, fetchArticleBySlug, fetchMyArticles, deleteArticle, fetchPrevAndNextArticle, searchArticles } from "../api";
 
 /**
  * 추천 아티클 목록을 조회하는 hook (기존)
@@ -37,7 +37,28 @@ export const useInfiniteRecommendArticles = (limit: number = 15) => {
 };
 
 /**
- * 단일 아티클(상세) 조회 hook
+ * 단일 아티클(상세) 조회 hook (slug 기반)
+ * @param penName - 작가 필명
+ * @param slug - 글의 slug
+ * @param enabled - 쿼리 실행 여부 (기본값: true)
+ */
+export const useSingleArticleBySlug = (
+    penName: string,
+    slug: string,
+    enabled: boolean = true
+) => {
+    return useQuery({
+        queryKey: articleKeys.singleDetailBySlug(penName, slug),
+        queryFn: () => fetchArticleBySlug(penName, slug),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        retry: 0,
+        enabled,
+    });
+};
+
+/**
+ * 단일 아티클(상세) 조회 hook (articleId 기반 - draft 조회용)
  * @param params - penName, articleId를 포함한 파라미터
  * @param enabled - 쿼리 실행 여부 (기본값: true)
  */

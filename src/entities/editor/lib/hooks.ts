@@ -37,13 +37,13 @@ export const useEditorMenuState = (editor: Editor | null) => {
             try {
                 return {
                     isBold: ctx.editor?.isActive('bold') ?? false,
-                    canBold: ctx.editor?.can().toggleBold().run() ?? false,
+                    canBold: !!ctx.editor?.can().toggleBold(),
                     isItalic: ctx.editor?.isActive('italic') ?? false,
-                    canItalic: ctx.editor?.can().toggleItalic().run() ?? false,
+                    canItalic: !!ctx.editor?.can().toggleItalic(),
                     isStrike: ctx.editor?.isActive('strike') ?? false,
-                    canStrike: ctx.editor?.can().toggleStrike().run() ?? false,
+                    canStrike: !!ctx.editor?.can().toggleStrike(),
                     isCode: ctx.editor?.isActive('code') ?? false,
-                    canCode: ctx.editor?.can().toggleCode().run() ?? false,
+                    canCode: !!ctx.editor?.can().toggleCode(),
                     isHeading1: ctx.editor?.isActive('heading', { level: 1 }) ?? false,
                     isHeading2: ctx.editor?.isActive('heading', { level: 2 }) ?? false,
                     isHeading3: ctx.editor?.isActive('heading', { level: 3 }) ?? false,
@@ -55,9 +55,9 @@ export const useEditorMenuState = (editor: Editor | null) => {
                     isCodeBlock: ctx.editor?.isActive('codeBlock') ?? false,
                     isBlockquote: ctx.editor?.isActive('blockquote') ?? false,
                     isParagraph: ctx.editor?.isActive('paragraph') ?? false,
-                    canUndo: ctx.editor?.can().undo().run() ?? false,
-                    canRedo: ctx.editor?.can().redo().run() ?? false,
-                    canClearMarks: ctx.editor?.can().unsetAllMarks().run() ?? false,
+                    canUndo: !!ctx.editor?.can().undo(),
+                    canRedo: !!ctx.editor?.can().redo(),
+                    canClearMarks: !!ctx.editor?.can().unsetAllMarks(),
                 } as EditorState
             } catch (error) {
                 return defaultState

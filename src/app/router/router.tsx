@@ -152,8 +152,8 @@ const router = createBrowserRouter([
                 ),
             },
             {
-                // 글 상세 보기
-                path: "articles/:penName/:articleId",
+                // 글 상세 보기 (slug 기반)
+                path: "articles/:penName/:slug",
                 element: <ArticleDetailPage />
             },
         ]

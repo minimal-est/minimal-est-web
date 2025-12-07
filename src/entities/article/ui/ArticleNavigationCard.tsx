@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import type { ArticleSummary } from "../model";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface ArticleNavigationCardProps {
     direction: 'prev' | 'next';
@@ -14,18 +13,16 @@ export const ArticleNavigationCard = ({ direction, article }: ArticleNavigationC
 
     const isPrev = direction === "prev";
     const label = isPrev ? "이전글" : "다음글";
-    const Icon = isPrev ? ChevronLeft : ChevronRight;
 
     return (
           <button
-              onClick={() => navigate(`/articles/${article.author.penName}/${article.articleId}`)}
-              className={`flex items-start gap-1 w-full ${
+              onClick={() => navigate(`/articles/${article.author.penName}/${article.slug}`)}
+              className={`p-3 flex items-start gap-1 w-full hover:bg-gray-50 dark:hover:bg-gray-800 ${
                   isPrev ? "text-left" : " text-right flex-row-reverse"
               }`}
           >
-              <Icon className="text-violet-600 dark:text-violet-400 flex-shrink-0 mt-1" />
               <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                       {label}
                   </p>
                   <h3 className="text-left text-sm font-semibold text-gray-900 dark:text-white line-clamp-4">

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://minimalest.kr/sitemap.xml
+Sitemap: https://api.minimalest.kr/api/v1/articles/sitemap.xml

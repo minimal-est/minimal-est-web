@@ -1,8 +1,16 @@
 import { ChevronLeft } from "lucide-react"
 import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet-async"
 
 export const Terms = () => (
-    <div className="prose dark:prose-invert mx-auto my-10">
+    <>
+        <Helmet>
+            <title>이용약관 | Minimal-est</title>
+            <meta name="description" content="Minimal-est 이용약관입니다." />
+            <meta property="og:title" content="이용약관 | Minimal-est" />
+            <meta property="og:type" content="website" />
+        </Helmet>
+        <div className="prose dark:prose-invert mx-auto my-10">
         <h1>Minimalest 서비스 이용약관</h1>
         <hr />
         <h2>1조. 목적</h2>
@@ -50,10 +58,11 @@ export const Terms = () => (
         <h2>9조. 준거법</h2>
         <p>본 약관은 대한민국법을 준거법으로 합니다.</p>
         <hr />
-        <ChevronLeft className="inline-block" /><Link to="/">홈으로 돌아가기</Link>
-        <ul>
-            <li className="opacity-70">이용약관</li>
-            <li><Link to="/privacy-policy">개인정보 처리방침</Link></li>
-        </ul>
-    </div>
+            <ChevronLeft className="inline-block" /><Link to="/">홈으로 돌아가기</Link>
+            <ul>
+                <li className="opacity-70">이용약관</li>
+                <li><Link to="/privacy-policy">개인정보 처리방침</Link></li>
+            </ul>
+        </div>
+    </>
 )

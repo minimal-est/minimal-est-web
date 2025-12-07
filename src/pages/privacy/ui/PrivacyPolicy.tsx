@@ -1,9 +1,17 @@
 import { ChevronLeft } from "lucide-react"
 import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet-async"
 
 export const PrivacyPolicy = () => {
     return (
-        <div className="prose dark:prose-invert mx-auto my-10">
+        <>
+            <Helmet>
+                <title>개인정보 처리방침 | Minimal-est</title>
+                <meta name="description" content="Minimal-est 개인정보 처리방침입니다." />
+                <meta property="og:title" content="개인정보 처리방침 | Minimal-est" />
+                <meta property="og:type" content="website" />
+            </Helmet>
+            <div className="prose dark:prose-invert mx-auto my-10">
             <h1>Minimalest 개인정보 처리방침</h1>
             <hr />
             <p>Minimalest은(는) 정보주체의 자유와 권리 보호를 위해 ｢개인정보 보호법｣ 및 관계 법령이 정한 바를 준수하여, 적법하게 개인정보를 처리하고 안전하게 관리하고 있습니다. 이에 ｢개인정보 보호법｣ 제30조 에 따라 정보주체에게 개인정보의 처리와 보호에 관한 절차 및 기준을 안내하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.</p>
@@ -65,11 +73,12 @@ export const PrivacyPolicy = () => {
             <h2>개인정보 처리방침의 변경에 관한 사항</h2>
             <p>본 개인정보처리방침은 2025. 12. 01. 부터 적용됩니다.</p>
             <hr />
-            <ChevronLeft className="inline-block"/><Link to="/">홈으로 돌아가기</Link>
-            <ul>
-                <li><Link to="/terms">이용약관</Link></li>
-                <li className="opacity-70">개인정보 처리방침</li>
-            </ul>
-        </div>
+                <ChevronLeft className="inline-block"/><Link to="/">홈으로 돌아가기</Link>
+                <ul>
+                    <li><Link to="/terms">이용약관</Link></li>
+                    <li className="opacity-70">개인정보 처리방침</li>
+                </ul>
+            </div>
+        </>
     )
 }

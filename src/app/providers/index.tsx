@@ -5,6 +5,7 @@ import { useTheme } from "@/shared/lib/hooks/useTheme";
 import React, { useEffect } from "react";
 import { useAuthStore } from "@/entities/user/lib";
 import { validateToken, refreshAccessToken } from "@/entities/auth/api/authApi";
+import { HelmetProvider } from "react-helmet-async";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -87,13 +88,15 @@ const TokenValidator = ({ children }: { children: React.ReactNode }) => {
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return (
-        <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
-            <QueryClientProvider client={queryClient}>
-                <ThemedToaster />
-                <TokenValidator>
-                    {children}
-                </TokenValidator>
-            </QueryClientProvider>
-        </ThemeProvider>
+        <HelmetProvider>
+            <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+                <QueryClientProvider client={queryClient}>
+                    <ThemedToaster />
+                    <TokenValidator>
+                        {children}
+                    </TokenValidator>
+                </QueryClientProvider>
+            </ThemeProvider>
+        </HelmetProvider>
     );
 };

@@ -6,6 +6,7 @@ import React, { useEffect } from "react";
 import { useAuthStore } from "@/entities/user/lib";
 import { validateToken, refreshAccessToken } from "@/entities/auth/api/authApi";
 import { HelmetProvider } from "react-helmet-async";
+import { blogApi } from "@/entities/user/api/blogApi";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -34,7 +35,7 @@ const ThemedToaster = () => {
 const TokenValidator = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const initializeToken = async () => {
-            const { accessToken, setAccessToken, signOut } = useAuthStore.getState();
+            const { accessToken, setAccessToken, signOut, setBlogInfo } = useAuthStore.getState();
 
             if (accessToken) {
                 // accessToken이 있으면 유효성 검증
@@ -42,6 +43,15 @@ const TokenValidator = ({ children }: { children: React.ReactNode }) => {
                     console.log("[TokenValidator] Validating existing access token...");
                     await validateToken();
                     console.log("[TokenValidator] Access token is valid");
+
+                    // 토큰 유효 → blog 정보 로드
+                    try {
+                        const blogData = await blogApi.fetchBlogSelf();
+                        setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
+                        console.log("[TokenValidator] Blog info loaded successfully");
+                    } catch (blogError) {
+                        console.warn("[TokenValidator] Failed to load blog info:", blogError);
+                    }
                 } catch (error: any) {
                     // 401 에러 → 토큰 무효
                     if (error?.status === 401 || error?.response?.status === 401) {
@@ -66,6 +76,15 @@ const TokenValidator = ({ children }: { children: React.ReactNode }) => {
 
                     console.log("[TokenValidator] Token refreshed successfully");
                     setAccessToken(newToken);
+
+                    // 토큰 갱신 후 blog 정보도 로드
+                    try {
+                        const blogData = await blogApi.fetchBlogSelf();
+                        setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
+                        console.log("[TokenValidator] Blog info loaded after token refresh");
+                    } catch (blogError) {
+                        console.warn("[TokenValidator] Failed to load blog info:", blogError);
+                    }
                 } catch (error: any) {
                     // 갱신 실패 원인 파악
                     console.error("[TokenValidator] Token refresh failed:", {
@@ -73,8 +92,6 @@ const TokenValidator = ({ children }: { children: React.ReactNode }) => {
                         message: error?.response?.data?.detail || error?.message,
                         fullError: error,
                     });
-                    // 갱신 실패 → 로그아웃 처리하지 않음 (공개 API는 계속 사용 가능)
-                    // 인증이 필요한 API 호출 시 401 에러로 로그아웃 처리
                     console.log("[TokenValidator] Refresh token might be expired or missing. Will handle on first protected API call.");
                 }
             }

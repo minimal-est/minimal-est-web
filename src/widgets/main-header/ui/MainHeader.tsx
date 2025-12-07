@@ -13,13 +13,20 @@ export const MainHeader = ({ onToggleSidebar }: MainHeaderProps) => {
     const navigate = useNavigate();
     const { isSignedIn } = useAuth();
     const { blogId } = useAuthStore();
-
-    // useFetchBlogInfo는 내부적으로 enabled 조건으로 관리되므로, useAuth의 isSignedIn이 변경되면 자동으로 반응함
-    useFetchBlogInfo();
+    const { isLoading: isBlogLoading } = useFetchBlogInfo();
 
     const renderNav = () => {
         if (!isSignedIn) {
             return <GuestNav />;
+        }
+
+        // 블로그 정보 로딩 중
+        if (isBlogLoading) {
+            return (
+                <div className="flex items-center gap-2">
+                    <div className="animate-pulse h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+                </div>
+            );
         }
 
         if (!blogId) {

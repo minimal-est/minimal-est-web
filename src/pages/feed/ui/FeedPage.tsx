@@ -9,7 +9,7 @@ export const FeedPage = () => {
             <Helmet>
                 <title>모든 글 | Minimal-est</title>
                 <meta name="description" content="다양한 분야의 흥미로운 글들을 만나보세요. 최신 글들을 무한스크롤로 탐색해보세요." />
-                <meta name="keywords" content="블로그, 글, 기사, 미니멀리즘, 글쓰기" />
+                <meta name="keywords" content="블로그, 글, 기사, 글쓰기, 회고" />
                 <meta property="og:title" content="모든 글 | Minimal-est" />
                 <meta property="og:description" content="다양한 분야의 흥미로운 글들을 만나보세요." />
                 <meta property="og:type" content="website" />

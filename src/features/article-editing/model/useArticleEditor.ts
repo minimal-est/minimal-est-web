@@ -75,6 +75,7 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
                 const result = await createArticle(blogId);
                 setArticleIdState(result.articleId);
                 setArticleStatus("DRAFT");
+                await queryClient.invalidateQueries({ queryKey: articleKeys.all });
                 navigate(`/write/${result.articleId}`, { replace: true });
             } catch (err) {
                 setError("글 생성에 실패하였습니다.");

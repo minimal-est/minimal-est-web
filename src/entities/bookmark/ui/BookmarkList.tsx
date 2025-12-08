@@ -15,7 +15,6 @@ export const BookmarkList = ({
     isLoading = false,
     isDraggingId,
     onRemove,
-    onMove,
     onReorder,
 }: BookmarkListProps) => {
     if (isLoading) {
@@ -89,7 +88,6 @@ export const BookmarkList = ({
                         authorPenName={bookmark.authorPenName}
                         isDragging={isDraggingId === bookmark.id}
                         onRemove={onRemove}
-                        onMove={onMove}
                     />
                 </div>
             ))}

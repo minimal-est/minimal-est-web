@@ -13,6 +13,7 @@ import { useRequireAuth, useRequireBlog } from "@/entities/user/lib";
 import { Spinner } from "@/shared/ui/base";
 import { toast } from "sonner";
 import { PrivacyPolicy, Terms } from "@/pages/privacy/ui";
+import { BlogPage } from "@/pages/blog/ui/BlogPage";
 
 /**
  * 로그인이 필수인 Route 보호 컴포넌트
@@ -156,6 +157,11 @@ const router = createBrowserRouter([
                 path: "articles/:penName/:slug",
                 element: <ArticleDetailPage />
             },
+            {
+                // 블로그 조회
+                path: "b/:penName",
+                element: <BlogPage />
+            }
         ]
     }
 ]);

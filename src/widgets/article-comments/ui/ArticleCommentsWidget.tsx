@@ -23,7 +23,7 @@ export const ArticleCommentsWidget = ({ articleId }: ArticleCommentsWidgetProps)
 
     // 답글 폼 렌더링
     const renderReplyForm = (commentId: string) => (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-4">
+        <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded p-4">
             {isSignedIn ? (
                 <MemberCommentForm
                     articleId={articleId}
@@ -50,7 +50,7 @@ export const ArticleCommentsWidget = ({ articleId }: ArticleCommentsWidgetProps)
             </h2>
 
             {/* 댓글 작성 폼 - 로그인 상태에 따라 다른 폼 표시 */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-4">
+            <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded p-4">
                 {isSignedIn ? (
                     <MemberCommentForm
                         articleId={articleId}

@@ -29,11 +29,11 @@ export const fetchBookmarks = async (
  * 글 저장 (북마크 추가)
  */
 export const addBookmark = async (
-    articleId: string,
+    slug: string,
     collectionId: string
 ): Promise<Bookmark> => {
     const response = await client.post<BookmarkResponse>(
-        `/bookmarks/collections/${collectionId}/articles/${articleId}`
+        `/bookmarks/collections/${collectionId}/articles/${slug}`
     );
 
     return convertBookmarkResponseToBookmark(response.data);
@@ -81,6 +81,7 @@ const convertBookmarkResponseToBookmark = (response: BookmarkResponse): Bookmark
         id: response.id,
         collectionId: response.collectionId,
         articleId: response.articleId,
+        articleSlug: response.articleSlug,
         articleTitle: response.articleTitle,
         authorPenName: response.authorPenName,
         sequence: response.sequence,

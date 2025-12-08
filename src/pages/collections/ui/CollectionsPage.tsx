@@ -41,9 +41,9 @@ export const CollectionsPage = () => {
                     </h1>
                     <button
                         onClick={collectionManaging.openCreateModal}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors font-medium"
+                        className="flex items-center gap-2 text-gray-900 dark:text-white hover:opacity-60 transition-opacity font-medium text-sm"
                     >
-                        <Plus size={20} />
+                        <Plus size={18} />
                         새 컬렉션
                     </button>
                 </div>
@@ -69,7 +69,7 @@ export const CollectionsPage = () => {
                             </p>
                             <button
                                 onClick={collectionManaging.openCreateModal}
-                                className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors font-medium"
+                                className="text-sm text-gray-900 dark:text-white hover:opacity-60 transition-opacity font-medium"
                             >
                                 첫 컬렉션 만들기
                             </button>

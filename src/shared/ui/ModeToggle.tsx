@@ -24,13 +24,13 @@ export const ModeToggle = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => setTheme("light")}>
-                    Light
+                    라이트 모드
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setTheme("dark")}>
-                    Dark
+                    다크 모드
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setTheme("system")}>
-                    System
+                    시스템
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

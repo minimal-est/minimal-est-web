@@ -62,7 +62,7 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+        <div className="w-full min-h-screen bg-white dark:bg-gray-950 flex flex-col">
             {/* Logo */}
             <div className="pt-6 px-4">
                 <Logo />

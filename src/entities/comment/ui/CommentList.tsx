@@ -61,9 +61,9 @@ export const CommentList = ({
         : '더 불러오기';
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-0">
             {/* 댓글 목록 */}
-            <div className="space-y-4">
+            <div className="space-y-0">
                 {allComments.map((comment) => (
                     <div key={comment.id}>
                         <CommentItem
@@ -77,7 +77,7 @@ export const CommentList = ({
                             onShowReplyForm={onShowReplyForm}
                         />
                         {replyingTo === comment.id && renderReplyForm && (
-                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 ml-0">
+                            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 ml-0">
                                 {renderReplyForm(comment.id)}
                             </div>
                         )}
@@ -87,11 +87,11 @@ export const CommentList = ({
 
             {/* 더 불러오기 버튼 */}
             {shouldShowLoadMore && (
-                <div className="flex justify-center pt-4">
+                <div className="flex justify-center pt-2">
                     <button
                         onClick={() => fetchNextPage()}
                         disabled={isFetchingNextPage}
-                        className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="text-sm font-semibold text-gray-900 dark:text-white hover:opacity-60 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         {isFetchingNextPage ? '로딩 중...' : buttonText}
                     </button>

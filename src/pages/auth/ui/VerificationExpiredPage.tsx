@@ -6,7 +6,7 @@ export const VerificationExpiredPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-white dark:bg-gray-950">
             {/* Logo */}
             <div className="pt-6 px-4">
                 <Logo />

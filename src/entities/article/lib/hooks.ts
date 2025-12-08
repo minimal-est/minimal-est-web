@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import type { findSingleArticleParams, ArticleStatusFilter } from "../model/types";
 import { articleKeys } from "./queryKeys";
-import { fetchRecommendArticles, fetchRecommendArticlesWithPagination, fetchSingleArticle, fetchArticleBySlug, fetchMyArticles, deleteArticle, fetchPrevAndNextArticle, searchArticles } from "../api";
+import { fetchRecommendArticles, fetchRecommendArticlesWithPagination, fetchSingleArticle, fetchArticleBySlug, fetchMyArticles, deleteArticle, fetchPrevAndNextArticle, searchArticles, fetchBlogArticles } from "../api";
 
 /**
  * 추천 아티클 목록을 조회하는 hook (기존)
@@ -141,5 +141,24 @@ export const useSearchArticles = (
         enabled: !!query,
         staleTime: 1000 * 60 * 5,
         retry: 0
+    });
+};
+
+/**
+ * 블로그 글 목록 조회 hook
+ * @param penName - 필자 필명
+ * @param page - 페이지 번호
+ * @param size - 페이지당 항목 수
+ */
+export const useBlogArticles = (
+    penName: string,
+    page: number = 0,
+    size: number = 10
+) => {
+    return useQuery({
+        queryKey: ['articles', 'blog', penName, page, size],
+        queryFn: () => fetchBlogArticles(penName, page, size),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
     });
 };

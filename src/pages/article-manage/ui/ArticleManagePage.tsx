@@ -19,24 +19,24 @@ export const ArticleManagePage = () => {
     }
 
     return (
-        <div className="w-full min-h-screen bg-background flex flex-col">
+        <div className="w-full min-h-screen bg-white dark:bg-gray-950 flex flex-col">
             {/* 헤더 */}
-            <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95">
+            <header className="sticky top-0 z-30 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
                 <div className="w-full max-w-2xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <button
                             onClick={() => navigate("/")}
-                            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors font-medium text-sm"
                         >
-                            <ChevronLeft size={20} />
-                            <span className="text-sm font-medium">돌아가기</span>
+                            <ChevronLeft size={16} />
+                            돌아가기
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white">내 글 관리</h1>
+                        <h1 className="text-base font-semibold text-gray-900 dark:text-white">내 글 관리</h1>
                         <button
                             onClick={() => navigate("/articles/create")}
-                            className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded hover:opacity-90 transition-opacity font-medium"
+                            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-opacity font-medium"
                         >
-                            <Plus size={16} />
+                            <Plus size={14} />
                             새 글
                         </button>
                     </div>
@@ -56,7 +56,7 @@ export const ArticleManagePage = () => {
 
                 {/* 글 개수 */}
                 {articlesData && (
-                    <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="mb-4 text-xs text-gray-600 dark:text-gray-400">
                         총 <span className="font-semibold text-gray-900 dark:text-white">{articlesData.totalElements}</span>개의 글
                     </div>
                 )}
@@ -86,17 +86,17 @@ export const ArticleManagePage = () => {
                         <button
                             onClick={() => setPage(Math.max(0, page - 1))}
                             disabled={page === 0}
-                            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             이전
                         </button>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
                             {page + 1} / {articlesData.totalPages}
                         </span>
                         <button
                             onClick={() => setPage(Math.min(articlesData.totalPages - 1, page + 1))}
                             disabled={page >= articlesData.totalPages - 1}
-                            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             다음
                         </button>

@@ -11,6 +11,7 @@ interface ArticleCardProps {
     myReactions?: MyReactionResponse | null;
     isReactionLoading?: boolean;
     reactionError?: string | null;
+    showAuthor?: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ export const ArticleCard = ({
     myReactions = null,
     isReactionLoading = false,
     reactionError = null,
+    showAuthor = true,
 }: ArticleCardProps) => {
     const formatDate = (date: Date) => {
         return formatDistanceToNow(date, {
@@ -34,48 +36,66 @@ export const ArticleCard = ({
     return (
         <Link
             to={`/articles/${article.author.penName}/${article.slug}`}
-            className="block transition-all duration-200 hover:no-underline"
+            className="block transition-opacity hover:opacity-60 no-underline"
         >
-            <article className="flex flex-col gap-4 bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700 transition-all duration-200 hover:translate-y-[-2px]">
-                {/* Header with Author Info */}
-                <div className="flex items-center gap-3">
-                    {/* Avatar */}
-                    <ProfileAvatar
-                        penName={article.author.penName}
-                        profileImageUrl={article.author.profileImageUrl}
-                        size="sm"
-                    />
-                    {/* Author Info */}
-                    <div className="flex flex-col gap-1 min-w-0 flex-1">
-                        <div className="font-semibold text-sm text-gray-900 truncate dark:text-gray-100">
-                            {article.author.penName}
+            <article className="py-3 px-0 border-b border-gray-200 dark:border-gray-800">
+                {showAuthor ? (
+                    <div className="flex items-center gap-2 mb-2">
+                        {/* Avatar - clickable profile link */}
+                        <div
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            onClickCapture={(e) => {
+                                if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-profile-avatar]')) {
+                                    window.location.href = `/b/${article.author.penName}`;
+                                }
+                            }}
+                        >
+                            <div data-profile-avatar>
+                                <ProfileAvatar
+                                    penName={article.author.penName}
+                                    profileImageUrl={article.author.profileImageUrl}
+                                    size="sm"
+                                    clickable={true}
+                                />
+                            </div>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {/* Author Info */}
+                        <div className="flex-1 flex flex-col gap-0 min-w-0">
+                            <div className="font-semibold text-xs text-gray-900 truncate dark:text-white">
+                                {article.author.penName}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {formatDate(article.publishedAt)}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-2">
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
                             {formatDate(article.publishedAt)}
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Content */}
-                <div className="flex flex-col gap-3">
-                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight">
-                        {article.title}
-                    </h2>
-                    <p className="text-xs sm:text-sm leading-6 text-gray-600 dark:text-gray-300 line-clamp-2">
-                        {article.description}
-                    </p>
-                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug mb-2">
+                    {article.title}
+                </h2>
+                <p className="text-xs sm:text-sm leading-relaxed text-gray-600 dark:text-gray-400 line-clamp-2 mt-0.5 mb-2">
+                    {article.description}
+                </p>
 
-                <div className="pt-1">
-                    <ReactionStatsDisplay
-                        articleId={article.articleId}
-                        stats={reactionStats}
-                        myReactions={myReactions}
-                        isLoading={isReactionLoading}
-                        error={reactionError}
-                        variant="compact"
-                    />
-                </div>
+                <ReactionStatsDisplay
+                    articleId={article.articleId}
+                    stats={reactionStats}
+                    myReactions={myReactions}
+                    isLoading={isReactionLoading}
+                    error={reactionError}
+                    variant="compact"
+                />
             </article>
         </Link>
     );

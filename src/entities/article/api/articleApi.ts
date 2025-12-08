@@ -384,3 +384,45 @@ export const searchArticles = async (
         pageSize: pageInfo.size,
     };
 };
+
+/**
+ * 블로그 글 목록 조회
+ * @param penName - 필자 필명
+ * @param page - 페이지 번호 (0부터 시작, 기본값: 0)
+ * @param size - 페이지당 항목 수 (기본값: 10)
+ * @returns ArticlesResponse - 페이지네이션된 글 목록
+ * @throws {ErrorResponse} API 에러
+ */
+export const fetchBlogArticles = async (
+    penName: string,
+    page: number = DEFAULT_PAGE_NUMBER,
+    size: number = 10
+): Promise<ArticlesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+
+    const response = await client.get<any>(
+        `/blogs/${penName}/articles?${params.toString()}`
+    );
+
+    const articlesData = response.data.articles;
+    const pageInfo = articlesData.page;
+
+    return {
+        content: articlesData.content.map((article: any) => ({
+            articleId: article.articleId,
+            slug: article.slug || "",
+            title: article.title,
+            description: article.description,
+            publishedAt: new Date(article.publishedAt),
+            author: article.author,
+            reactionStats: article.reactionStats,
+            tags: Array.isArray(article.tags) ? article.tags.map((t: any) => t.name) : [],
+        })),
+        totalElements: pageInfo.totalElements,
+        totalPages: pageInfo.totalPages,
+        currentPage: pageInfo.number,
+        pageSize: pageInfo.size,
+    };
+};

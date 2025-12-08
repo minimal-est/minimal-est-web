@@ -1,1 +1,1 @@
-export type { CreateBlogRequest, CreateBlogResponse, BlogProfile } from './types';
+export type { CreateBlogRequest, CreateBlogResponse, BlogProfile, BlogDetails } from './types';

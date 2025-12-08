@@ -17,7 +17,7 @@ export const TiptapRenderer = ({ nodes }: TiptapRendererProps) => {
 
     return (
         <div
-            className="prose dark:prose-invert"
+            className="prose-sm sm:prose dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );

@@ -13,7 +13,7 @@ export const ArticleNavigationWidget = ({ articleId }: ArticleNavigationWidgetPr
     }
 
     return (
-        <section className="bg-white dark:bg-gray-900 py-12 border-t border-gray-200 dark:border-gray-700">
+        <section className="bg-white dark:bg-gray-950 py-12 border-gray-200 dark:border-gray-700">
             <div className="mx-auto">
                 <div className="text-xs grid grid-cols-1 md:grid-cols-2">
                     <ArticleNavigationCard 

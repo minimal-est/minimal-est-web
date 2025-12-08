@@ -12,6 +12,7 @@ import { ArticleCommentsWidget } from "@/widgets/article-comments";
 import { useBookmarkAdding, BookmarkAddFloatingButton, BookmarkAddModal } from "@/features/bookmark-adding";
 import { ArticleNavigationWidget } from "@/widgets/article-navigation/ui";
 import { Helmet } from "react-helmet-async";
+import { Spinner } from "@/shared/ui/base";
 
 export const ArticleDetailPage = () => {
     const { penName, slug } = useParams<{ penName: string; slug: string }>();
@@ -40,17 +41,15 @@ export const ArticleDetailPage = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mb-4" />
-                </div>
+            <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-950">
+                <Spinner />
             </div>
         );
     }
 
     if (error || !article) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-900">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-950">
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                     글을 찾을 수 없습니다
                 </h1>
@@ -67,8 +66,8 @@ export const ArticleDetailPage = () => {
         );
     }
 
-    const formatDateTime = (date: Date) => {
-        return format(date, "M월 d일 H:mm", { locale: ko });
+    const formatDate = (date: Date) => {
+        return format(date, "yyyy.MM.dd", { locale: ko });
     };
 
 
@@ -114,11 +113,11 @@ export const ArticleDetailPage = () => {
                 <meta property="article:published_time" content={article.publishedAt.toISOString()} />
                 {article.tags && <meta property="article:tag" content={article.tags.join(', ')} />}
             </Helmet>
-            <div className="w-full bg-white dark:bg-gray-900">
-                <div className="max-w-prose mx-auto">
+            <div className="w-full bg-white dark:bg-gray-950">
+                <div className="prose-sm sm:prose mx-auto">
                     {/* Header */}
                     <header className="border-b border-gray-200 dark:border-gray-700">
-                        <div className="mx-auto py-8">
+                        <div className="mx-auto px-2 py-8">
                             {/* Back Button */}
                             <button
                                 onClick={() => navigate("/")}
@@ -128,70 +127,57 @@ export const ArticleDetailPage = () => {
                             </button>
 
                             {/* Title */}
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight tracking-tight">
                                 {article.title}
                             </h1>
-                            <h2 className="text-2xl">
+                            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-4 leading-relaxed font-normal">
                                 {article.description}
-                            </h2>
+                            </p>
 
-                            <div className="pt-4">
-                                <ReactionStatsSection
-                                    showCompact={true}
-                                    articleId={article.articleId}
-                                />
-                            </div>
+                            <ReactionStatsSection
+                                showCompact={true}
+                                articleId={article.articleId}
+                            />
 
                             {/* Author Info */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="">
-                                        <ProfileAvatar
-                                            penName={article.author.penName}
-                                            profileImageUrl={article.author.profileImageUrl}
-                                            size="sm"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                {article.author.penName}
-                                            </p>
-                                            {article.status === 'DRAFT' && (
-                                                <span className="inline-block px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded-full">
-                                                    발행되지 않음
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
-                                            <p>발행일 ・ {formatDateTime(article.publishedAt)}</p>
+                            <div className="mt-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <ProfileAvatar
+                                        penName={article.author.penName}
+                                        profileImageUrl={article.author.profileImageUrl}
+                                        size="sm"
+                                        clickable={true}
+                                    />
+                                    <div>
+                                        <span className="font-semibold text-gray-900 dark:text-white text-xs block">
+                                            {article.author.penName}
+                                        </span>
+                                        <span className="text-gray-500 dark:text-gray-500 text-xs block">
+                                            발행 {formatDate(article.publishedAt)}
                                             {article.updatedAt > article.publishedAt && (
-                                                <p className="text-xs">마지막 수정일 ・ {formatDateTime(article.updatedAt)}</p>
+                                                <> · 수정 {formatDate(article.updatedAt)}</>
                                             )}
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
+
                                 {/* Action Buttons */}
-                                <div className="flex items-center gap-2">
-                                    {/* Share Button */}
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={handleShare}
-                                        className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                        className="inline-flex items-center justify-center w-8 h-8 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                         title="링크 복사"
                                     >
-                                        <Share2 size={18} />
-                                        <span className="text-sm font-medium">공유</span>
+                                        <Share2 size={16} />
                                     </button>
 
-                                    {/* Edit Button - 자신의 글일 때만 표시 */}
                                     {myPenName === article.author.penName && (
                                         <button
                                             onClick={handleEditMode}
-                                            className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                            className="inline-flex items-center justify-center w-8 h-8 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                             title="글 수정"
                                         >
-                                            <Edit2 size={18} />
-                                            <span className="text-sm font-medium">수정</span>
+                                            <Edit2 size={16} />
                                         </button>
                                     )}
                                 </div>
@@ -200,8 +186,8 @@ export const ArticleDetailPage = () => {
                     </header>
 
                     {/* Content */}
-                    <article className="max-w-prose mx-auto py-12">
-                        <div className="prose dark:prose-invert">
+                    <article className="max-w-prose mx-auto py-8 px-4 sm:py-12 sm:px-0">
+                        <div className="dark:prose-invert prose-sm sm:prose-base prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-img:rounded-lg prose-a:text-violet-600 dark:prose-a:text-violet-400">
                             <TiptapRenderer nodes={article.content} />
                         </div>
 
@@ -238,8 +224,8 @@ export const ArticleDetailPage = () => {
                     </footer>
 
                     {/* Comments Section */}
-                    <section className="bg-gray-50 dark:bg-gray-800 py-12">
-                        <div className="mx-auto px-4">
+                    <section className="not-prose bg-gray-50 dark:bg-gray-800 py-12">
+                        <div className="max-w-3xl mx-auto px-4">
                             <ArticleCommentsWidget articleId={article.articleId} />
                         </div>
                     </section>
@@ -251,17 +237,15 @@ export const ArticleDetailPage = () => {
                     />
 
                     {/* Bookmark Add Modal */}
-                    {isSignedIn &&
-                        <BookmarkAddModal
-                            isOpen={bookmarkAdding.isOpen}
-                            isLoading={bookmarkAdding.isLoading}
-                            articleId={article?.articleId || ""}
-                            onClose={() => bookmarkAdding.setIsOpen(false)}
-                            onAdd={async (articleIdParam, collectionIdParam) => {
-                                await bookmarkAdding.addBookmark(articleIdParam, collectionIdParam);
-                            }}
-                        />
-                    }
+                    <BookmarkAddModal
+                        isOpen={bookmarkAdding.isOpen}
+                        isLoading={bookmarkAdding.isLoading}
+                        slug={slug}
+                        onClose={() => bookmarkAdding.setIsOpen(false)}
+                        onAdd={async (slugParam, collectionIdParam) => {
+                            await bookmarkAdding.addBookmark(slugParam, collectionIdParam);
+                        }}
+                    />
                 </div>
             </div>
         </>

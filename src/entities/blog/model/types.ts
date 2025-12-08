@@ -15,3 +15,9 @@ export interface AuthorInfo {
 export interface BlogProfile {
     profileImageUrl: string;
 }
+
+export interface BlogDetails {
+    blogId: string;
+    author: AuthorInfo;
+    about: string;
+}

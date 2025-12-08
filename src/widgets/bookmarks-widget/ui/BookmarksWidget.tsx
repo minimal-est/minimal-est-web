@@ -174,10 +174,9 @@ export const BookmarksWidget = () => {
             <BookmarkAddModal
                 isOpen={bookmarkAdding.isOpen}
                 isLoading={bookmarkAdding.isLoading}
-                articleId={undefined}
                 onClose={() => bookmarkAdding.setIsOpen(false)}
-                onAdd={async (articleId, collectionId) => {
-                    await bookmarkAdding.addBookmark(articleId, collectionId);
+                onAdd={async (slug, collectionId) => {
+                    await bookmarkAdding.addBookmark(slug, collectionId);
                 }}
             />
 

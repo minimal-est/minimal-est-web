@@ -35,6 +35,7 @@ export interface Bookmark {
     id: string;
     collectionId: string;
     articleId: string;
+    articleSlug?: string;
     articleTitle?: string;
     authorPenName?: string;
     sequence: number;
@@ -48,6 +49,7 @@ export interface BookmarkResponse {
     id: string;
     collectionId: string;
     articleId: string;
+    articleSlug?: string;
     articleTitle?: string;
     authorPenName?: string;
     sequence: number;

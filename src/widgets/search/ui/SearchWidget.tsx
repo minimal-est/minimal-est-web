@@ -60,23 +60,23 @@ export const SearchWidget = () => {
 
                             {/* 페이지네이션 */}
                             {totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-2 mt-8">
+                                <div className="flex items-center justify-center gap-4 mt-8">
                                     <button
                                         onClick={() => handlePageChange(page - 1)}
                                         disabled={page === 0}
-                                        className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="text-sm font-semibold text-gray-900 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-60 transition-opacity"
                                     >
                                         이전
                                     </button>
 
-                                    <span className="px-4 py-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
                                         {page + 1} / {totalPages}
                                     </span>
 
                                     <button
                                         onClick={() => handlePageChange(page + 1)}
                                         disabled={page >= totalPages - 1}
-                                        className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="text-sm font-semibold text-gray-900 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-60 transition-opacity"
                                     >
                                         다음
                                     </button>

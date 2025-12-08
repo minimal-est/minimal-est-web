@@ -1,6 +1,7 @@
 import type { ArticleReactionStats, MyReactionResponse } from "../model";
 import { REACTION_CONFIG } from "../lib/reactionConfig";
 import { Skeleton } from "@/shared/ui/base";
+import { Heart, ThumbsUp, Lightbulb } from "lucide-react";
 
 interface ReactionStatsDisplayProps {
     articleId: string;
@@ -35,6 +36,20 @@ export const ReactionStatsDisplay = ({
             .map((reaction) => reaction.reactionType) || []
     );
 
+    // 반응 타입별 아이콘 렌더링
+    const getReactionIcon = (iconName: string, size: number = 16) => {
+        switch (iconName) {
+            case "heart":
+                return <Heart size={size} />;
+            case "thumbsup":
+                return <ThumbsUp size={size} />;
+            case "lightbulb":
+                return <Lightbulb size={size} />;
+            default:
+                return <span className="text-base">{REACTION_CONFIG[iconName]?.emoji || "◆"}</span>;
+        }
+    };
+
     if (error) {
         return (
             <div className="text-sm text-red-600 dark:text-red-400">
@@ -63,7 +78,7 @@ export const ReactionStatsDisplay = ({
 
     if (variant === "compact") {
         return (
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
                 {Object.entries(stats.stats).map(([type, count]) => {
                     const config = REACTION_CONFIG[type];
 
@@ -74,11 +89,11 @@ export const ReactionStatsDisplay = ({
                             key={type}
                             onClick={() => onReactionClick?.(type)}
                             disabled={isTogglingLoading}
-                            className="flex items-center gap-1 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-70"
+                            className="flex items-center gap-0.5 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-70 text-gray-600 dark:text-gray-400"
                             title={config?.label || type}
                         >
-                            <span className="text-base">{config?.emoji || "◆"}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {getReactionIcon(config?.icon || type, 12)}
+                            <span className="text-xs leading-none">
                                 {count}
                             </span>
                         </button>
@@ -110,7 +125,7 @@ export const ReactionStatsDisplay = ({
                             }
                         `}
                     >
-                        <span className="text-base">{config?.emoji || "◆"}</span>
+                        {getReactionIcon(config?.icon || type)}
                         <span className="text-xs">{config?.label || type}</span>
                         <span className={isMyReaction ? "text-violet-600 dark:text-violet-300" : "text-gray-500 dark:text-gray-500"}>
                             {count}

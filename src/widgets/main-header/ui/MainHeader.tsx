@@ -1,9 +1,10 @@
-import { Logo, ModeToggle } from "@/shared/ui";
+import { Logo } from "@/shared/ui";
 import { NavLink } from "./NavLink";
 import { useAuth, useAuthStore, useFetchBlogInfo } from "@/entities/user/lib";
 import { GuestNav, UserNav, AuthorNav } from "./navs";
 import { useNavigate } from "react-router-dom";
 import { Search, Menu } from "lucide-react";
+import { Spinner } from "@/shared/ui/base";
 
 interface MainHeaderProps {
     onToggleSidebar: () => void;
@@ -20,31 +21,33 @@ export const MainHeader = ({ onToggleSidebar }: MainHeaderProps) => {
             return <GuestNav />;
         }
 
-        // 블로그 정보 로딩 중
-        if (isBlogLoading) {
+        // 로그인했지만 블로그 정보를 아직 받지 못한 경우 로딩 표시
+        if (isBlogLoading || (isSignedIn && !blogId)) {
             return (
                 <div className="flex items-center gap-2">
-                    <div className="animate-pulse h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <Spinner/>
                 </div>
             );
         }
 
+        // 블로그가 없는 경우
         if (!blogId) {
             return <UserNav />;
         }
 
+        // 블로그가 있는 경우
         return <AuthorNav />;
     };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-            <div className="mx-auto flex items-center px-4 py-3">
+            <div className="mx-auto flex items-center px-4 py-2 lg:py-4 lg:px-8">
                 {/* 왼쪽: 토글 버튼 + 로고 */}
                 <button
                     onClick={onToggleSidebar}
-                    className="hidden lg:flex mr-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none transition-colors"
+                    className="lg:hidden mr-3 p-1 hover:opacity-60 transition-opacity"
                 >
-                    <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    <Menu className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                 </button>
                 <Logo />
 
@@ -53,16 +56,15 @@ export const MainHeader = ({ onToggleSidebar }: MainHeaderProps) => {
                     <NavLink />
                 </nav>
 
-                {/* 오른쪽: 검색 + 버튼 + 모드 토글 */}
-                <div className="flex items-center gap-3">
+                {/* 오른쪽: 검색 + 버튼 */}
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate("/search")}
-                        className="p-2 hover:bg-accent rounded-none transition-colors"
+                        className="p-1 hover:opacity-60 transition-opacity"
                     >
-                        <Search className="w-5 h-5" />
+                        <Search className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     </button>
                     {renderNav()}
-                    <ModeToggle />
                 </div>
             </div>
         </header>

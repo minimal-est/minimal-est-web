@@ -54,25 +54,25 @@ export const CollectionModal = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="bg-white dark:bg-gray-950 max-w-md w-full mx-4">
                 {/* 헤더 */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                         {isEditing ? '컬렉션 수정' : '새 컬렉션'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     >
-                        <X size={20} className="text-gray-500" />
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* 폼 */}
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     {/* 제목 */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                             제목 <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -80,58 +80,58 @@ export const CollectionModal = ({
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             disabled={isLoading}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50"
+                            className="w-full px-0 py-2 bg-transparent border-b border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-gray-900 dark:focus:border-white placeholder-gray-500 dark:placeholder-gray-600 disabled:opacity-50 transition-colors"
                             placeholder="컬렉션 제목을 입력하세요"
                         />
                     </div>
 
                     {/* 설명 */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                             설명
                         </label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             disabled={isLoading}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 resize-none"
+                            className="w-full px-0 py-2 bg-transparent border-b border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-gray-900 dark:focus:border-white placeholder-gray-500 dark:placeholder-gray-600 disabled:opacity-50 resize-none transition-colors"
                             placeholder="컬렉션에 대한 설명을 입력하세요"
-                            rows={3}
+                            rows={2}
                         />
                     </div>
 
                     {/* 공개 여부 */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 py-2">
                         <input
                             type="checkbox"
                             id="isPublic"
                             checked={isPublic}
                             onChange={(e) => setIsPublic(e.target.checked)}
                             disabled={isLoading}
-                            className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 disabled:opacity-50 cursor-pointer"
+                            className="w-4 h-4 rounded border-gray-300 text-gray-900 dark:text-white focus:ring-0 disabled:opacity-50 cursor-pointer"
                         />
                         <label
                             htmlFor="isPublic"
-                            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                            className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
                         >
                             공개 컬렉션
                         </label>
                     </div>
 
                     {/* 버튼 */}
-                    <div className="flex gap-2 justify-end pt-4">
+                    <div className="flex gap-3 justify-end pt-4">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}
-                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                         >
                             취소
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading || !title.trim()}
-                            className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors disabled:bg-gray-400 disabled:opacity-50 font-medium"
+                            className="px-4 py-2 text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
                             {isLoading ? '저장 중...' : '저장'}
                         </button>

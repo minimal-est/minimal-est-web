@@ -37,54 +37,43 @@ export const CommentItem = ({
 
     return (
         <div
-            className={`border-l-2 pl-4 py-4 ${
+            className={`py-3 ${
                 isReply
-                    ? 'border-l-gray-300 dark:border-l-gray-600 ml-4'
-                    : 'border-l-violet-600 dark:border-l-violet-500'
+                    ? 'pl-4 ml-4 border-l border-gray-200 dark:border-gray-800'
+                    : 'border-b border-gray-200 dark:border-gray-800'
             }`}
         >
             {/* 헤더 */}
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    {/* 프로필 사진 - 비익명 회원일 때만 표시 */}
-                    {!isAnonymous && comment.authorInfo && (
-                        <ProfileAvatar
-                            penName={comment.authorInfo.penName}
-                            profileImageUrl={comment.authorInfo.profileImageUrl}
-                            size="sm"
-                        />
-                    )}
-
-                    <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-2">
-                            <span className={`font-semibold text-xs ${
-                                isDeleted ? 'text-gray-400' : 'text-gray-900 dark:text-white'
-                            }`}>
-                                {comment.authorName}
-                            </span>
-                            {isAnonymous && (
-                                <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded font-semibold">
-                                    익명
-                                </span>
-                            )}
-                            {isReply && (
-                                <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-                                    대댓글
-                                </span>
-                            )}
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDistanceToNow(comment.createdAt, {
-                                addSuffix: true,
-                                locale: ko,
-                            })}
+            <div className="flex items-center gap-2 mb-1.5">
+                {!isAnonymous && comment.authorInfo && (
+                    <ProfileAvatar
+                        penName={comment.authorInfo.penName}
+                        profileImageUrl={comment.authorInfo.profileImageUrl}
+                        size="xs"
+                    />
+                )}
+                <div className="flex items-baseline gap-1.5">
+                    <span className={`text-xs font-semibold leading-none ${
+                        isDeleted ? 'text-gray-400' : 'text-gray-900 dark:text-white'
+                    }`}>
+                        {comment.authorName}
+                    </span>
+                    {isAnonymous && (
+                        <span className="text-xs text-gray-500 dark:text-gray-500">
+                            익명
                         </span>
-                    </div>
+                    )}
+                    <span className="text-xs text-gray-400 dark:text-gray-600">
+                        {formatDistanceToNow(comment.createdAt, {
+                            addSuffix: true,
+                            locale: ko,
+                        })}
+                    </span>
                 </div>
             </div>
 
             {/* 내용 */}
-            <p className={`text-sm leading-relaxed mb-3 ${
+            <p className={`text-sm leading-relaxed mb-2 ${
                 isDeleted
                     ? 'text-gray-400 italic'
                     : 'text-gray-700 dark:text-gray-300'
@@ -94,27 +83,13 @@ export const CommentItem = ({
 
             {/* 액션 버튼 */}
             {!isDeleted && (
-                <div className="flex items-center gap-4">
-                    {/* TODO: 좋아요 버튼 구현 예정
-                    <button
-                        onClick={handleLikeClick}
-                        className={`flex items-center gap-1 text-xs transition-colors ${
-                            isLiked
-                                ? 'text-red-500'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-red-500'
-                        }`}
-                    >
-                        <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
-                        <span>{comment.likeCount}</span>
-                    </button>
-                    */}
-
+                <div className="flex items-center gap-3 text-xs">
                     {canReply && (
                         <button
                             onClick={() => onShowReplyForm?.(comment.id)}
-                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                            className="flex items-center gap-1 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors font-medium"
                         >
-                            <MessageCircle size={14} />
+                            <MessageCircle size={12} />
                             <span>답글</span>
                         </button>
                     )}
@@ -122,9 +97,9 @@ export const CommentItem = ({
                     {canDelete && (
                         <button
                             onClick={() => onDelete?.(comment.id)}
-                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                            className="flex items-center gap-1 text-gray-500 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                             <span>삭제</span>
                         </button>
                     )}
@@ -133,7 +108,7 @@ export const CommentItem = ({
 
             {/* 대댓글 */}
             {comment.replies && comment.replies.length > 0 && (
-                <div className="mt-4 space-y-4">
+                <div className="mt-2 space-y-0">
                     {comment.replies.map((reply) => (
                         <CommentItem
                             key={reply.id}

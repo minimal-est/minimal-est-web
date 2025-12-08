@@ -14,8 +14,8 @@ export const useBookmarkAdding = ({ collectionId = '' }: UseBookmarkAddingProps 
 
     // 직접 mutation을 만들어 항상 올바른 collectionId를 사용하도록 함
     const addBookmarkMutation = useMutation({
-        mutationFn: ({ articleId, collectionId: actualCollectionId }: { articleId: string; collectionId: string }) =>
-            addBookmark(articleId, actualCollectionId),
+        mutationFn: ({ slug, collectionId: actualCollectionId }: { slug: string; collectionId: string }) =>
+            addBookmark(slug, actualCollectionId),
         onSuccess: (_, { collectionId: actualCollectionId }) => {
             toast.success('북마크가 추가되었습니다');
             queryClient.invalidateQueries({
@@ -32,7 +32,7 @@ export const useBookmarkAdding = ({ collectionId = '' }: UseBookmarkAddingProps 
         },
     });
 
-    const handleAddBookmark = async (articleId: string, passedCollectionId?: string) => {
+    const handleAddBookmark = async (slug: string, passedCollectionId?: string) => {
         const finalCollectionId = passedCollectionId || collectionId;
 
         if (!finalCollectionId) {
@@ -42,7 +42,7 @@ export const useBookmarkAdding = ({ collectionId = '' }: UseBookmarkAddingProps 
 
         try {
             await addBookmarkMutation.mutateAsync({
-                articleId,
+                slug,
                 collectionId: finalCollectionId,
             });
             // 성공했을 때만 모달 닫기

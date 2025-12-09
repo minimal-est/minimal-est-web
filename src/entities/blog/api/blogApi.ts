@@ -23,3 +23,52 @@ export const getBlogDetails = async(penName: string): Promise<BlogDetails> => {
     const response = await client.get(`/blogs/${penName}`);
     return response.data;
 }
+
+/**
+ * 블로그 정보 업데이트 (About)
+ * @param penName - 필명
+ * @param about - 블로그 소개
+ */
+export const updateBlogAbout = async (penName: string, about: string): Promise<void> => {
+    await client.patch(`/blogs/${penName}/about`, { about });
+}
+
+/**
+ * 블로그 프로필 이미지 업로드
+ * @param blogId - 블로그 ID
+ * @param file - 이미지 파일
+ */
+export const updateBlogProfileImage = async (blogId: string, file: File): Promise<{ profileImageUrl: string }> => {
+    // 1. presigned URL 획득
+    const presignedData = await client.post('/files/presigned', {
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+    });
+
+    const { presignedUrl, objectKey } = presignedData.data;
+
+    // 2. S3에 파일 업로드
+    const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': file.type,
+        },
+        body: file,
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error(`S3 업로드 실패: ${uploadResponse.status}`);
+    }
+
+    // 3. S3 URL 생성
+    const S3_URL = import.meta.env.VITE_S3_URL;
+    const profileImageUrl = `${S3_URL}/${objectKey}`;
+
+    // 4. 프로필 이미지 URL 저장
+    await client.put(`/blogs/${blogId}/profile/image`, {
+        profileImageUrl,
+    });
+
+    return { profileImageUrl };
+}

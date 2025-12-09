@@ -21,8 +21,8 @@ export const MainHeader = ({ onToggleSidebar }: MainHeaderProps) => {
             return <GuestNav />;
         }
 
-        // 로그인했지만 블로그 정보를 아직 받지 못한 경우 로딩 표시
-        if (isBlogLoading || (isSignedIn && !blogId)) {
+        // 로그인했지만 블로그 정보를 아직 로딩 중인 경우
+        if (isBlogLoading) {
             return (
                 <div className="flex items-center gap-2">
                     <Spinner/>
@@ -30,7 +30,7 @@ export const MainHeader = ({ onToggleSidebar }: MainHeaderProps) => {
             );
         }
 
-        // 블로그가 없는 경우
+        // 블로그가 없는 경우 (로딩 완료 후)
         if (!blogId) {
             return <UserNav />;
         }

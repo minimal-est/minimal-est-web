@@ -14,6 +14,7 @@ import {
     TAG_MIN_LENGTH,
     TAG_MAX_LENGTH,
     TAG_REGEX,
+    MAX_TAGS,
 } from "@/shared/constants";
 import { toast } from "sonner";
 
@@ -199,6 +200,11 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
     const handleAddTag = () => {
         const trimmed = tagInput.trim();
         if (!trimmed) return;
+
+        if (tags.length >= MAX_TAGS) {
+            toast.error(`태그는 최대 ${MAX_TAGS}개까지만 추가할 수 있습니다.`);
+            return;
+        }
 
         if (trimmed.length < TAG_MIN_LENGTH) {
             toast.error(`태그는 ${TAG_MIN_LENGTH}자 이상이어야 합니다.`);

@@ -157,9 +157,14 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
 
                     {/* Tags Input */}
                     <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            태그 (선택 사항)
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                태그 (선택 사항)
+                            </label>
+                            <span className={`text-xs ${tags.length === 5 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                                {tags.length} / 5
+                            </span>
+                        </div>
                         <div className="flex gap-2">
                             <input
                                 type="text"

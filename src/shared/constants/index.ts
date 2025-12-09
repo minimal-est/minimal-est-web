@@ -107,6 +107,9 @@ export const TAG_MAX_LENGTH = 50;
 /** 태그 정규식 (영문, 숫자, 한글만 허용) */
 export const TAG_REGEX = /^[a-zA-Z0-9가-힣]+$/;
 
+/** 태그 최대 개수 */
+export const MAX_TAGS = 5;
+
 // ==========================================
 // UI & UX
 // ==========================================
@@ -164,4 +167,5 @@ export const VALIDATION_MESSAGES = {
     TAG_TOO_SHORT: `태그는 ${TAG_MIN_LENGTH}자 이상이어야 합니다.`,
     TAG_TOO_LONG: `태그는 ${TAG_MAX_LENGTH}자 이하여야 합니다.`,
     TAG_INVALID_FORMAT: '태그는 영문, 숫자, 한글만 사용 가능합니다.',
+    TAG_MAX_COUNT: `태그는 최대 ${MAX_TAGS}개까지만 추가할 수 있습니다.`,
 } as const;

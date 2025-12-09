@@ -1,1 +1,1 @@
-export { createBlog, getBlogProfile, getBlogDetails } from "./blogApi";
+export { createBlog, getBlogProfile, getBlogDetails, updateBlogAbout, updateBlogProfileImage } from "./blogApi";

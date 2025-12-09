@@ -1,9 +1,18 @@
 import { BlogCreateForm } from "@/features/blog-creation";
+import { Logo } from "@/shared/ui";
 
 export const BlogCreatePage = () => {
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
-            <BlogCreateForm />
+        <div className="w-full min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+            {/* Logo */}
+            <div className="pt-6 px-4">
+                <Logo />
+            </div>
+
+            {/* Content */}
+            <div className="flex items-center justify-center flex-1 px-4">
+                <BlogCreateForm />
+            </div>
         </div>
     );
 };

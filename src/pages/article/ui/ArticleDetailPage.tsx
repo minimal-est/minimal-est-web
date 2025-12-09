@@ -113,8 +113,8 @@ export const ArticleDetailPage = () => {
                 <meta property="article:published_time" content={article.publishedAt.toISOString()} />
                 {article.tags && <meta property="article:tag" content={article.tags.join(', ')} />}
             </Helmet>
-            <div className="w-full bg-white dark:bg-gray-950">
-                <div className="prose-sm sm:prose mx-auto">
+            <div className="w-full">
+                <div className="prose prose-sm sm:prose mx-auto">
                     {/* Header */}
                     <header className="border-b border-gray-200 dark:border-gray-700">
                         <div className="mx-auto px-2 py-8">
@@ -127,10 +127,10 @@ export const ArticleDetailPage = () => {
                             </button>
 
                             {/* Title */}
-                            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight tracking-tight">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight tracking-tight break-words">
                                 {article.title}
                             </h1>
-                            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-4 leading-relaxed font-normal">
+                            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-4 leading-relaxed font-normal break-words">
                                 {article.description}
                             </p>
 

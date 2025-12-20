@@ -1,0 +1,6 @@
+/* 빈 줄도 높이를 가지도록 설정 */
+.prose p:empty::before,
+.prose-sm p:empty::before {
+    content: '\200b';
+    display: inline-block;
+}

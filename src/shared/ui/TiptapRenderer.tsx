@@ -1,6 +1,7 @@
 import { generateHTML } from "@tiptap/core";
 import { tiptapExtensions } from "@/shared/lib/tiptapConfig";
 import type { JSONContent } from "@tiptap/core";
+import "./TiptapRenderer.css";
 
 interface TiptapRendererProps {
     nodes: JSONContent[];

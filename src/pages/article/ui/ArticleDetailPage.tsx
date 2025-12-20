@@ -237,15 +237,17 @@ export const ArticleDetailPage = () => {
                     />
 
                     {/* Bookmark Add Modal */}
-                    <BookmarkAddModal
-                        isOpen={bookmarkAdding.isOpen}
-                        isLoading={bookmarkAdding.isLoading}
-                        slug={slug}
-                        onClose={() => bookmarkAdding.setIsOpen(false)}
-                        onAdd={async (slugParam, collectionIdParam) => {
-                            await bookmarkAdding.addBookmark(slugParam, collectionIdParam);
-                        }}
-                    />
+                    {bookmarkAdding.isOpen && 
+                        <BookmarkAddModal
+                            isOpen={bookmarkAdding.isOpen}
+                            isLoading={bookmarkAdding.isLoading}
+                            slug={slug}
+                            onClose={() => bookmarkAdding.setIsOpen(false)}
+                            onAdd={async (slugParam, collectionIdParam) => {
+                                await bookmarkAdding.addBookmark(slugParam, collectionIdParam);
+                            }}
+                        /> 
+                    }
                 </div>
             </div>
         </>

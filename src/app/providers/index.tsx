@@ -4,9 +4,10 @@ import {ThemeProvider} from "@/shared/lib/theme";
 import { useTheme } from "@/shared/lib/hooks/useTheme";
 import React, { useEffect } from "react";
 import { useAuthStore } from "@/entities/user/lib";
-import { validateToken, refreshAccessToken } from "@/entities/auth/api/authApi";
+import { refreshAccessToken } from "@/entities/auth/api/authApi";
 import { HelmetProvider } from "react-helmet-async";
 import { blogApi } from "@/entities/user/api/blogApi";
+import { isTokenValid } from "@/shared/lib/utils/jwt";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -27,77 +28,66 @@ const ThemedToaster = () => {
 };
 
 /**
- * 앱 시작 시 토큰 유효성 검증 및 자동 갱신
- * 1. accessToken이 없으면 refreshToken으로 자동 갱신 시도
- * 2. accessToken이 있으면 유효성 검증
- * 3. 갱신/검증 실패 시 로그아웃 (필요시)
+ * 앱 시작 시 인증 상태 초기화
+ *
+ * JWT 기반 인증 원칙:
+ * 1. JWT의 exp(만료시간)는 클라이언트에서 체크 (서버에 확인 불필요)
+ * 2. JWT 서명 검증은 서버가 자동으로 수행 (모든 API 요청마다)
+ * 3. 위조된 토큰은 서버가 401로 자동 거부
+ * 4. 클라이언트는 만료 여부만 확인하고, 필요한 데이터만 로드
+ *
+ * 플로우:
+ * 1. accessToken 있음 + 만료 안됨 → 블로그 정보 로드
+ * 2. accessToken 있음 + 만료됨 → refreshToken으로 갱신 시도
+ * 3. accessToken 없음 → refreshToken으로 갱신 시도
+ * 4. refreshToken 실패 → 첫 보호 API 요청 시 처리 (지연 처리)
  */
 const TokenValidator = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
-        const initializeToken = async () => {
-            const { accessToken, setAccessToken, signOut, setBlogInfo } = useAuthStore.getState();
+        const initializeAuth = async () => {
+            const { accessToken, setAccessToken, setBlogInfo } = useAuthStore.getState();
 
-            if (accessToken) {
-                // accessToken이 있으면 유효성 검증
+            // 1. accessToken이 있고 유효한 경우
+            if (accessToken && isTokenValid(accessToken)) {
+                console.log("[Auth] Access token is valid. Loading blog info...");
+
                 try {
-                    console.log("[TokenValidator] Validating existing access token...");
-                    await validateToken();
-                    console.log("[TokenValidator] Access token is valid");
-
-                    // 토큰 유효 → blog 정보 로드
-                    try {
-                        const blogData = await blogApi.fetchBlogSelf();
-                        setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
-                        console.log("[TokenValidator] Blog info loaded successfully");
-                    } catch (blogError) {
-                        console.warn("[TokenValidator] Failed to load blog info:", blogError);
-                    }
-                } catch (error: any) {
-                    // 401 에러 → 토큰 무효
-                    if (error?.status === 401 || error?.response?.status === 401) {
-                        console.log("[TokenValidator] Access token validation failed: 401 Unauthorized");
-                        signOut();
-                        queryClient.invalidateQueries({
-                            queryKey: ['user'],
-                            exact: false,
-                        });
-                        queryClient.invalidateQueries({
-                            queryKey: ['blog'],
-                            exact: false,
-                        });
-                    }
+                    const blogData = await blogApi.fetchBlogSelf();
+                    setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
+                    console.log("[Auth] Blog info loaded successfully");
+                } catch (blogError) {
+                    console.warn("[Auth] Failed to load blog info:", blogError);
+                    // 블로그 정보 로드 실패는 치명적이지 않음 (useFetchBlogInfo에서 재시도)
                 }
-            } else {
-                // accessToken이 없으면 refreshToken으로 갱신 시도
+                return;
+            }
+
+            // 2. accessToken이 없거나 만료된 경우 → refreshToken으로 갱신 시도
+            console.log("[Auth] Access token missing or expired. Attempting refresh...");
+
+            try {
+                const response = await refreshAccessToken();
+                const newToken = response.accessToken;
+
+                console.log("[Auth] Token refreshed successfully");
+                setAccessToken(newToken);
+
+                // 토큰 갱신 후 블로그 정보 로드
                 try {
-                    console.log("[TokenValidator] No access token. Attempting to refresh with refresh token...");
-                    const response = await refreshAccessToken();
-                    const newToken = response.accessToken;
-
-                    console.log("[TokenValidator] Token refreshed successfully");
-                    setAccessToken(newToken);
-
-                    // 토큰 갱신 후 blog 정보도 로드
-                    try {
-                        const blogData = await blogApi.fetchBlogSelf();
-                        setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
-                        console.log("[TokenValidator] Blog info loaded after token refresh");
-                    } catch (blogError) {
-                        console.warn("[TokenValidator] Failed to load blog info:", blogError);
-                    }
-                } catch (error: any) {
-                    // 갱신 실패 원인 파악
-                    console.error("[TokenValidator] Token refresh failed:", {
-                        status: error?.response?.status,
-                        message: error?.response?.data?.detail || error?.message,
-                        fullError: error,
-                    });
-                    console.log("[TokenValidator] Refresh token might be expired or missing. Will handle on first protected API call.");
+                    const blogData = await blogApi.fetchBlogSelf();
+                    setBlogInfo(blogData.blogId, blogData.author.penName, blogData.author.profileImageUrl);
+                    console.log("[Auth] Blog info loaded after token refresh");
+                } catch (blogError) {
+                    console.warn("[Auth] Failed to load blog info after refresh:", blogError);
                 }
+            } catch (error: any) {
+                // refreshToken 실패 → 로그인 필요
+                console.warn("[Auth] Token refresh failed. User will need to login on first protected action.");
+                // 여기서 로그아웃하지 않음 (첫 보호 API 요청 시 Interceptor가 처리)
             }
         };
 
-        initializeToken();
+        initializeAuth();
     }, []);
 
     return children;

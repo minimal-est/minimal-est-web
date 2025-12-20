@@ -71,11 +71,25 @@ const registerTokenRefreshSubscriber = (
     tokenRefreshErrorSubscribers.push(onFailure);
 }
 
+/**
+ * Axios Interceptor 설정
+ *
+ * 요청 인터셉터:
+ * - 모든 요청에 자동으로 Authorization 헤더 추가
+ *
+ * 응답 인터셉터:
+ * - 401 에러 시 자동 토큰 갱신 및 재시도
+ * - 동시 다발적 401 에러 처리 (구독자 패턴)
+ */
 export const setupInterceptors = (store: AuthStore, queryClientInstance?: QueryClient) => {
+    /**
+     * 요청 인터셉터
+     * 모든 API 요청에 accessToken을 Authorization 헤더로 자동 추가
+     * 서버는 이 토큰의 서명을 검증하여 위조 여부 판단
+     */
     client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
         const { accessToken } = store.getState();
 
-        // Access Token이 존재할 경우, Authorization 헤더 포함 후 요청 진행
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
@@ -99,19 +113,36 @@ export const setupInterceptors = (store: AuthStore, queryClientInstance?: QueryC
         return err.response.data as ErrorResponse;
     }
 
+    /**
+     * 응답 인터셉터
+     * 401 Unauthorized 에러 발생 시 자동으로 토큰 갱신 및 재시도
+     *
+     * JWT 인증 플로우:
+     * 1. API 요청 → 401 에러 (accessToken 만료 or 위조)
+     * 2. refreshToken으로 새 accessToken 발급
+     * 3. 새 토큰으로 원래 요청 재시도
+     * 4. refreshToken도 만료 시 로그아웃
+     *
+     * 동시 401 에러 처리 (구독자 패턴):
+     * - 여러 요청이 동시에 401을 받으면, 첫 요청만 토큰 갱신
+     * - 나머지 요청은 구독자로 등록하여 갱신 완료 대기
+     * - 갱신 성공 시 모든 대기 중인 요청에 새 토큰 전달 후 재시도
+     */
     client.interceptors.response.use(
         (response: AxiosResponse) => (response),
         async (error: AxiosError) => {
             const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-            // 네트워크 오류 및 해석할 수 없음
             const errorResponse: ErrorResponse = toErrorResponse(error);
+
+            // 네트워크 오류 (서버 응답 없음)
             if (errorResponse.status === 0) return Promise.reject(errorResponse);
 
-            // Access Token 만료 시
+            // 401 Unauthorized: accessToken 만료 또는 위조
             if (errorResponse.status === 401 && !originalRequest._retry) {
+                // 이미 토큰 갱신 중인 경우
                 if (isTokenRefreshing) {
-                    // 이미 토큰 갱신 중이라면 대기
+                    // 구독자로 등록하여 갱신 완료 대기
                     return new Promise((resolve, reject) => {
                         const onSuccess = (newToken: string) => {
                             originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -124,30 +155,34 @@ export const setupInterceptors = (store: AuthStore, queryClientInstance?: QueryC
                     });
                 }
 
+                // 첫 번째 401 에러 → 토큰 갱신 시작
                 originalRequest._retry = true;
                 isTokenRefreshing = true;
 
                 try {
                     const { setAccessToken } = store;
 
-                    // 토큰 갱신 요청
-                    console.log('[Response Interceptor] Access token expired. Attempting to refresh...');
+                    console.log('[Auth] Access token expired. Refreshing token...');
                     const refreshResponse = await axiosRefreshClient.post<{ accessToken: string }>(
                         "/auth/token/refresh"
                     );
                     const newToken = refreshResponse.data.accessToken;
 
-                    console.log('[Response Interceptor] Token refreshed successfully');
+                    console.log('[Auth] Token refreshed successfully');
                     setAccessToken(newToken);
 
-                    // 대기 중인 모든 요청들에게 새 토큰 전달
+                    // 대기 중인 모든 구독자에게 새 토큰 전달
                     notifyTokenRefreshSuccess(newToken);
+
+                    // 원래 요청 재시도
                     return client(originalRequest);
                 } catch (refreshError) {
-                    console.error('[Response Interceptor] Token refresh failed:', refreshError);
+                    console.error('[Auth] Token refresh failed. Logging out...', refreshError);
+
                     const { signOut: logout } = store;
                     logout();
-                    // 토큰 갱신 실패 시 사용자 관련 쿼리만 무효화 (다른 공개 API는 계속 실행)
+
+                    // 사용자 관련 쿼리만 무효화 (공개 API는 계속 실행)
                     if (queryClientInstance) {
                         queryClientInstance.invalidateQueries({
                             queryKey: ['user'],
@@ -158,6 +193,8 @@ export const setupInterceptors = (store: AuthStore, queryClientInstance?: QueryC
                             exact: false,
                         });
                     }
+
+                    // 대기 중인 모든 구독자에게 실패 알림
                     notifyTokenRefreshFailure(refreshError);
 
                     return Promise.reject(toErrorResponse(refreshError as AxiosError));

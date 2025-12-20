@@ -275,7 +275,6 @@ export const useArticleEditor = ({ articleId: urlArticleId, isEditMode = false }
 
         try {
             // 글 저장
-            console.log(getPlainText(content));
             await updateArticle({ blogId, articleId: currentArticleId, title, content, pureContent: getPlainText(content), description, tags });
             await queryClient.invalidateQueries({ queryKey: articleKeys.all });
 

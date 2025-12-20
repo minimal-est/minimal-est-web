@@ -58,7 +58,12 @@ export const updateBlogProfileImage = async (blogId: string, file: File): Promis
     });
 
     if (!uploadResponse.ok) {
-        throw new Error(`S3 업로드 실패: ${uploadResponse.status}`);
+        // ErrorResponse 형식에 맞게 에러 생성
+        const error: any = new Error('파일 업로드에 실패했습니다.');
+        error.status = uploadResponse.status;
+        error.title = 'S3 Upload Failed';
+        error.detail = `S3 업로드 실패: ${uploadResponse.statusText}`;
+        throw error;
     }
 
     // 3. S3 URL 생성

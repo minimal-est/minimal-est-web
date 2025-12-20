@@ -94,7 +94,8 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                 <form id="article-form" className="space-y-8" onSubmit={(e) => e.preventDefault()}>
                     {/* Title Input */}
                     <div className="space-y-3">
-                        <textarea
+                        <input
+                            type="text"
                             value={title}
                             onChange={(e) => {
                                 const newValue = e.target.value;
@@ -104,13 +105,8 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                                 setTitle(newValue);
                             }}
                             placeholder="글의 제목을 입력하세요..."
-                            rows={1}
-                            className="w-full text-2xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none resize-none overflow-hidden"
-                            onInput={(e) => {
-                                const target = e.currentTarget;
-                                target.style.height = 'auto';
-                                target.style.height = target.scrollHeight + 'px';
-                            }}
+                            maxLength={ARTICLE_TITLE_MAX_LENGTH}
+                            className="w-full text-2xl sm:text-5xl font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none"
                         />
                         <div className="flex items-center justify-between">
                             <div className="h-1 w-12 bg-violet-600 rounded-full" />
@@ -122,7 +118,8 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
 
                     {/* Description Input */}
                     <div>
-                        <textarea
+                        <input
+                            type="text"
                             value={description}
                             onChange={(e) => {
                                 const newValue = e.target.value;
@@ -132,13 +129,8 @@ export const ArticleEditor = ({ articleId, isEditMode = false }: ArticleEditorPr
                                 setDescription(newValue);
                             }}
                             placeholder="글의 간단한 설명을 작성하세요. 목록에서 미리보기로 보여집니다."
-                            rows={2}
-                            className="w-full text-lg text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none resize-none overflow-hidden focus:outline-none leading-relaxed"
-                            onInput={(e) => {
-                                const target = e.currentTarget;
-                                target.style.height = 'auto';
-                                target.style.height = target.scrollHeight + 'px';
-                            }}
+                            maxLength={ARTICLE_DESCRIPTION_MAX_LENGTH}
+                            className="w-full text-lg text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none outline-none focus:outline-none leading-relaxed"
                         />
                         <div className="text-right">
                             <span className={`text-xs ${description.length === ARTICLE_DESCRIPTION_MAX_LENGTH ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>

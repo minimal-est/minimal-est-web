@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { useCollections, useBookmarks } from '@/entities/bookmark';
 import { CollectionCard, BookmarkList } from '@/entities/bookmark';
 import { useCollectionManaging, CollectionModal, CollectionDeleteModal } from '@/features/collection-managing';
@@ -32,7 +33,15 @@ export const CollectionsPage = () => {
     const currentCollection = collections.find((c) => c.id === selectedCollectionId);
 
     return (
-        <div className="w-full py-12 px-4">
+        <>
+            <Helmet>
+                <title>북마크 | Minimal-est</title>
+                <meta name="description" content="저장한 글들을 컬렉션별로 관리하세요." />
+                <meta property="og:title" content="북마크 | Minimal-est" />
+                <meta property="og:description" content="저장한 글들을 컬렉션별로 관리하세요." />
+                <meta property="og:type" content="website" />
+            </Helmet>
+            <div className="w-full py-12 px-4">
             <div className="max-w-6xl mx-auto">
                 {/* 헤더 */}
                 <div className="flex items-center justify-between mb-8">
@@ -142,6 +151,7 @@ export const CollectionsPage = () => {
                 onClose={collectionManaging.closeDeleteModal}
                 onConfirm={collectionManaging.deleteCollection}
             />
-        </div>
+            </div>
+        </>
     );
 };

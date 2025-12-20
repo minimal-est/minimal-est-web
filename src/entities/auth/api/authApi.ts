@@ -40,7 +40,18 @@ export const refreshAccessToken = async (): Promise<AccessTokenResponse> => {
 
 /**
  * 토큰 유효성 검증
- * 앱 시작 시 저장된 토큰이 여전히 유효한지 확인
+ *
+ * @deprecated 이 API는 JWT 철학에 맞지 않아 사용하지 않습니다.
+ *
+ * JWT 인증 원칙:
+ * - 클라이언트는 JWT의 exp(만료시간)만 체크
+ * - 서버는 모든 API 요청에서 자동으로 JWT 서명 검증
+ * - 별도의 "토큰 유효한가?" API 불필요
+ * - 위조된 토큰은 서버가 자동으로 401 반환
+ *
+ * 대신 사용:
+ * - 클라이언트: `isTokenValid(token)` (utils/jwt.ts)
+ * - 서버: 자동 검증 (Interceptor가 401 처리)
  *
  * @returns { userId } 사용자 ID
  * @throws {ErrorResponse} 401 에러 (토큰 무효)

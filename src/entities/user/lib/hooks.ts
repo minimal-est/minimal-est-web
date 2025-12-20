@@ -7,10 +7,15 @@ import { logoutUser } from "@/entities/auth/api/authApi";
 /**
  * 블로그 정보를 가져오는 훅 (내부용)
  * useRequireBlog와 Provider에서만 사용됨
+ *
+ * 재시도 정책:
+ * - 네트워크 오류: 최대 2번 재시도 (지수 백오프)
+ * - 404 (블로그 없음): 재시도 안함
+ * - 401 (인증 오류): Interceptor가 자동으로 토큰 갱신
  */
 export const useFetchBlogInfo = () => {
     const { isSignedIn } = useAuth();
-    const { setBlogInfo } = useAuthStore();
+    const { setBlogInfo, clearBlogInfo } = useAuthStore();
 
     const { isLoading, error } = useQuery({
         queryKey: userQueryKeys.blogInfo(),
@@ -20,8 +25,17 @@ export const useFetchBlogInfo = () => {
             return data;
         },
         enabled: isSignedIn,
-        staleTime: 1000 * 60 * 60, // 1시간,
-        retry: 0,
+        staleTime: 1000 * 60 * 60, // 1시간
+        retry: (failureCount, error: any) => {
+            // 404 에러 (블로그 없음)는 재시도 안함
+            if (error?.status === 404) {
+                clearBlogInfo();
+                return false;
+            }
+            // 네트워크 오류나 기타 에러는 최대 2번 재시도
+            return failureCount < 2;
+        },
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
     });
 
     return { isLoading, error };
